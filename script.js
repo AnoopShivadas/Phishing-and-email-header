@@ -1,1055 +1,1925 @@
+// ============================================================================
+// CYBERSECURITY LEARNING PLATFORM - MAIN JAVASCRIPT
+// ============================================================================
 
-        // Main Application JavaScript
-        // This script handles all interactive functionality for the cybersecurity education platform
+// Global Variables and State Management
+let currentEmailIndex = 0;
+let correctSimulationAnswers = 0;
+let currentQuizQuestion = 0;
+let quizScore = 0;
+let quizAnswers = [];
+let isQuizActive = false;
 
-        // Application State
-        let currentPhishingEmail = 0;
-        let currentQuizQuestion = 0;
-        let quizScore = 0;
-        let quizAnswers = [];
-        let quizStarted = false;
+// Sample Data
+const phishingEmails = [
+    {
+        id: 1,
+        isPhishing: true,
+        from: "security@paypal-urgent.com",
+        to: "user@example.com",
+        subject: "URGENT: Account Will Be Suspended - Verify Now!",
+        body: `Dear Valued Customer,
 
-        // Sample phishing email templates for simulation
-        const phishingEmails = [
-            {
-                isPhishing: true,
-                from: "security@paypaI.com", // Note: capital I instead of l
-                replyTo: "noreply@suspicious-domain.com",
-                subject: "URGENT: Your Account Will Be Suspended",
-                body: `
-                    <p>Dear Valued Customer,</p>
-                    <p><strong>IMMEDIATE ACTION REQUIRED!</strong></p>
-                    <p>We have detected suspicious activity on your account. Your account will be permanently suspended within 24 hours unless you verify your information immediately.</p>
-                    <p><a href="http://paypal-security-verification.malicious-site.com" style="color: #0070ba;">Click here to verify your account now</a></p>
-                    <p>Failure to comply will result in permanent account closure and loss of funds.</p>
-                    <p>Sincerely,<br>PayPal Security Team</p>
-                `,
-                redFlags: [
-                    "Domain spoofing: 'paypaI.com' uses capital I instead of lowercase l",
-                    "Mismatched Reply-To address pointing to suspicious domain",
-                    "Urgent/threatening language creating false sense of urgency",
-                    "Suspicious link domain not matching legitimate PayPal",
-                    "Generic greeting 'Dear Valued Customer' instead of personal name"
-                ]
-            },
-            {
-                isPhishing: false,
-                from: "notifications@github.com",
-                replyTo: "noreply@github.com",
-                subject: "Weekly activity summary for your repositories",
-                body: `
-                    <p>Hi [Your Name],</p>
-                    <p>Here's your weekly activity summary from GitHub:</p>
-                    <ul>
-                        <li>3 new commits to your repositories</li>
-                        <li>2 pull requests merged</li>
-                        <li>1 new star on your project</li>
-                    </ul>
-                    <p>You can view detailed statistics in your <a href="https://github.com/settings/profile" style="color: #0366d6;">GitHub dashboard</a>.</p>
-                    <p>Best regards,<br>The GitHub Team</p>
-                `,
-                redFlags: [] // This is a legitimate email
-            },
-            {
-                isPhishing: true,
-                from: "admin@your-bank.com",
-                replyTo: "noreply@fake-bank-security.net",
-                subject: "Security Alert: Unusual Login Detected",
-                body: `
-                    <p>Dear Customer,</p>
-                    <p>We detected an unusual login attempt from an unrecognized device in Nigeria at 3:47 AM.</p>
-                    <p><strong>Location:</strong> Lagos, Nigeria<br>
-                    <strong>Device:</strong> Unknown Mobile Device<br>
-                    <strong>Time:</strong> 3:47 AM EST</p>
-                    <p>If this was not you, please click the link below immediately to secure your account:</p>
-                    <p><a href="http://secure-bank-login.phishing-site.ru/verify" style="color: #cc0000;">SECURE MY ACCOUNT NOW</a></p>
-                    <p>For your security, we have temporarily locked your account.</p>
-                `,
-                redFlags: [
-                    "Mismatched Reply-To domain (.net vs .com)",
-                    "Suspicious foreign domain (.ru) in the verification link",
-                    "Creating panic with account locking claim",
-                    "Generic 'Dear Customer' greeting",
-                    "Urgent call-to-action with threatening consequences"
-                ]
-            }
-        ];
+We have detected suspicious activity on your PayPal account. Your account will be suspended within 24 hours unless you verify your identity immediately.
 
-        // Sample email headers for analyzer
-        const sampleHeaders = {
-            good: `Return-Path: <notifications@github.com>
-Received: from github.com (192.30.255.112) by mx.example.com
-    with ESMTP id ABC123; Thu, 01 Jan 2024 12:00:00 +0000
-DKIM-Signature: v=1; a=rsa-sha256; d=github.com; s=default;
-    bh=abc123...; b=def456...
-From: GitHub <notifications@github.com>
-Reply-To: noreply@github.com
-To: user@example.com
-Subject: Your weekly GitHub activity summary
-Date: Thu, 01 Jan 2024 12:00:00 +0000
-Message-ID: <weekly-summary-20240101@github.com>
-Authentication-Results: mx.example.com;
+Click here to verify your account: http://paypal-verification.suspicious-site.net/verify
+
+If you don't verify within 24 hours, your account will be permanently closed and all funds will be frozen.
+
+Thank you for your immediate attention.
+
+PayPal Security Team`,
+        redFlags: [
+            "Urgent/threatening language about account suspension",
+            "Suspicious sender domain (paypal-urgent.com instead of paypal.com)",
+            "Generic greeting 'Dear Valued Customer'",
+            "Suspicious verification URL pointing to external site",
+            "Creates false sense of urgency with 24-hour deadline",
+            "Poor grammar: 'will be frozen' instead of professional language"
+        ]
+    },
+    {
+        id: 2,
+        isPhishing: false,
+        from: "noreply@github.com",
+        to: "developer@company.com",
+        subject: "GitHub Security Alert: New sign-in from Chrome on Windows",
+        body: `Hi developer@company.com,
+
+A new sign-in to your account was detected.
+
+Device: Chrome on Windows
+Location: San Francisco, CA, USA  
+Time: January 15, 2024 at 2:30 PM PST
+
+If this was you, you can safely ignore this email.
+
+If this wasn't you, please secure your account immediately:
+- Change your password
+- Review your security settings
+- Enable two-factor authentication
+
+View security settings: https://github.com/settings/security
+
+Thanks,
+The GitHub Team`,
+        redFlags: []
+    },
+    {
+        id: 3,
+        isPhishing: true,
+        from: "support@microsoft-security.org",
+        to: "user@business.com",
+        subject: "Microsoft Office 365 - License Expired",
+        body: `Microsoft Office 365 Notification
+
+Your Microsoft Office 365 license has expired. To continue using Office applications, you must renew your subscription immediately.
+
+Your account details:
+Email: user@business.com
+License: Business Premium
+Status: EXPIRED
+
+To avoid service interruption, click below to renew:
+http://office365-renewal.fake-microsoft.org/renew?user=user@business.com
+
+Failure to renew within 48 hours will result in permanent data loss.
+
+Microsoft Support Team
+Copyright © 2024 Microsoft Corporation`,
+        redFlags: [
+            "Suspicious sender domain (microsoft-security.org instead of microsoft.com)",
+            "False urgency about license expiration",
+            "Threatening data loss to create panic",
+            "Fake renewal URL pointing to external domain",
+            "No option to log into official Microsoft portal",
+            "Generic business communication style"
+        ]
+    }
+];
+
+const quizQuestions = [
+    {
+        id: 1,
+        question: "What is the most common type of phishing attack?",
+        options: [
+            "Email phishing",
+            "SMS phishing (Smishing)",
+            "Voice phishing (Vishing)",
+            "Social media phishing"
+        ],
+        correct: 0,
+        explanation: "Email phishing remains the most common type, accounting for over 90% of phishing attacks. Attackers send mass emails impersonating legitimate organizations to steal credentials and personal information."
+    },
+    {
+        id: 2,
+        question: "Which of the following is NOT a red flag for phishing emails?",
+        options: [
+            "Urgent language and time pressure",
+            "Generic greetings like 'Dear Customer'",
+            "Professional email signature with contact details",
+            "Suspicious links or attachments"
+        ],
+        correct: 2,
+        explanation: "Professional email signatures with legitimate contact details are actually signs of authentic emails. Phishing emails typically lack proper signatures or use fake contact information."
+    },
+    {
+        id: 3,
+        question: "What does SPF stand for in email authentication?",
+        options: [
+            "Secure Protection Framework",
+            "Sender Policy Framework",
+            "Simple Password Function",
+            "Spam Prevention Filter"
+        ],
+        correct: 1,
+        explanation: "SPF (Sender Policy Framework) is an email authentication method that specifies which mail servers are authorized to send emails on behalf of a domain."
+    },
+    {
+        id: 4,
+        question: "Which authentication method uses cryptographic signatures to verify email integrity?",
+        options: [
+            "SPF",
+            "DMARC",
+            "DKIM",
+            "TLS"
+        ],
+        correct: 2,
+        explanation: "DKIM (DomainKeys Identified Mail) uses cryptographic signatures to verify that an email message hasn't been tampered with during transmission."
+    },
+    {
+        id: 5,
+        question: "What should you do if you receive a suspicious email asking for personal information?",
+        options: [
+            "Reply with your information to verify authenticity",
+            "Click the link to check if it's legitimate",
+            "Delete the email and report it as phishing",
+            "Forward it to your contacts to warn them"
+        ],
+        correct: 2,
+        explanation: "The safest approach is to delete suspicious emails and report them to your IT department or email provider. Never provide personal information or click suspicious links."
+    },
+    {
+        id: 6,
+        question: "What percentage of data breaches involve phishing attacks?",
+        options: [
+            "25%",
+            "45%",
+            "67%",
+            "83%"
+        ],
+        correct: 3,
+        explanation: "According to recent cybersecurity reports, approximately 83% of organizations experienced phishing attacks, making it the most common attack vector for data breaches."
+    },
+    {
+        id: 7,
+        question: "Which of the following domains is most likely to be used in a phishing attack?",
+        options: [
+            "support@paypal.com",
+            "security@paypal-verification.net",
+            "noreply@paypal.com",
+            "help@paypal.com"
+        ],
+        correct: 1,
+        explanation: "Phishing attacks often use domains that look similar to legitimate ones but have slight variations. 'paypal-verification.net' is suspicious because it's not the official paypal.com domain."
+    },
+    {
+        id: 8,
+        question: "What is spear phishing?",
+        options: [
+            "Phishing attacks via SMS messages",
+            "Targeted phishing attacks on specific individuals",
+            "Phishing attacks using fake websites",
+            "Automated phishing attacks using bots"
+        ],
+        correct: 1,
+        explanation: "Spear phishing refers to targeted phishing attacks that focus on specific individuals or organizations, often using personal information to make the attack more convincing."
+    },
+    {
+        id: 9,
+        question: "Which government agency should you report phishing attempts to in India?",
+        options: [
+            "CBI",
+            "CERT-In",
+            "RBI",
+            "TRAI"
+        ],
+        correct: 1,
+        explanation: "CERT-In (Computer Emergency Response Team - India) is the national agency responsible for cybersecurity incidents and should be contacted to report phishing attempts."
+    },
+    {
+        id: 10,
+        question: "What is the best way to verify if an email is legitimate?",
+        options: [
+            "Check if it has professional formatting",
+            "Look for spelling and grammar errors",
+            "Contact the organization through official channels",
+            "Check the email's timestamp"
+        ],
+        correct: 2,
+        explanation: "The most reliable way to verify an email's legitimacy is to contact the organization directly through their official website or phone number, not through any contact information provided in the suspicious email."
+    }
+];
+
+const sampleHeaders = {
+    good: `Return-Path: <noreply@github.com>
+Delivered-To: developer@company.com
+Received: from github.com (github.com [140.82.113.4])
+    by mx.company.com with ESMTPS id abc123def456
+    (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384)
+    for <developer@company.com>; Mon, 15 Jan 2024 14:30:15 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=github.com;
+    s=github; t=1705359015;
+    h=from:to:subject:date:mime-version;
+    bh=abcd1234efgh5678ijkl9012mnop3456qrst7890uvwx=;
+    b=xyz789abc012def345ghi678jkl901mno234pqr567stu890vwx123=
+Authentication-Results: mx.company.com;
     spf=pass smtp.mailfrom=github.com;
     dkim=pass header.d=github.com;
-    dmarc=pass header.from=github.com`,
-            
-            suspicious: `Return-Path: <bounce@malicious-server.net>
-Received: from unknown-server.xyz ([192.168.1.100]) by mx.example.com
-    with SMTP id XYZ789; Thu, 01 Jan 2024 25:99:99 +0000
-From: security@paypaI.com
-Reply-To: noreply@suspicious-domain.com
-To: victim@example.com
-Subject: URGENT: Verify Your Account Now!
-Date: Thu, 01 Jan 2024 25:99:99 +0000
-Message-ID: <phishing-123@malicious-server.net>
+    dmarc=pass header.from=github.com
+Message-ID: <security-alert-123456@github.com>
+Date: Mon, 15 Jan 2024 22:30:15 +0000
+From: GitHub <noreply@github.com>
+To: developer@company.com
+Subject: Security Alert: New sign-in detected
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8`,
+
+    suspicious: `Return-Path: <support@paypal-security.com>
+Delivered-To: user@example.com
+Received: from mail.suspicious-server.net (unknown [192.168.1.100])
+    by mx.example.com with ESMTP id fake123
+    for <user@example.com>; Mon, 15 Jan 2024 10:30:00 -0500
 Authentication-Results: mx.example.com;
-    spf=fail smtp.mailfrom=paypaI.com;
+    spf=fail smtp.mailfrom=paypal-security.com;
     dkim=none;
-    dmarc=fail header.from=paypaI.com`
-        };
+    dmarc=fail header.from=paypal-security.com
+Message-ID: <urgent-notice-789@suspicious-server.net>
+Date: Mon, 15 Jan 2024 15:30:00 +0000
+From: PayPal Security <support@paypal-security.com>
+To: user@example.com
+Subject: Urgent: Account Verification Required
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8`
+};
 
-        // Quiz questions with explanations
-        const quizQuestions = [
-            {
-                question: "What is the most common way phishing attacks are delivered?",
-                options: [
-                    "Phone calls",
-                    "Email messages",
-                    "Physical mail",
-                    "Social media posts"
-                ],
-                correct: 1,
-                explanation: "Email is the most common delivery method for phishing attacks, accounting for over 90% of all phishing attempts. Attackers use email because it's cost-effective and can reach many victims simultaneously."
-            },
-            {
-                question: "Which domain is suspicious in a PayPal phishing email?",
-                options: [
-                    "paypal.com",
-                    "paypaI.com (with capital I)",
-                    "paypal.co.uk",
-                    "mail.paypal.com"
-                ],
-                correct: 1,
-                explanation: "The domain 'paypaI.com' uses a capital letter 'I' instead of lowercase 'l', making it visually similar but technically different from the legitimate 'paypal.com'. This is called typosquatting or homograph attack."
-            },
-            {
-                question: "What does SPF in email headers validate?",
-                options: [
-                    "Email content authenticity",
-                    "Sender's authorized servers",
-                    "Recipient verification",
-                    "Message encryption"
-                ],
-                correct: 1,
-                explanation: "SPF (Sender Policy Framework) validates that emails are being sent from servers authorized by the domain owner. It helps prevent email spoofing by checking if the sending server is listed in the domain's SPF record."
-            },
-            {
-                question: "Which is a red flag in email communication?",
-                options: [
-                    "Personalized greeting with your name",
-                    "Company logo and branding",
-                    "Urgent action required within hours",
-                    "Professional email signature"
-                ],
-                correct: 2,
-                explanation: "Urgent language creating artificial time pressure is a common phishing tactic. Legitimate organizations rarely require immediate action within hours and usually provide reasonable time frames for account-related actions."
-            },
-            {
-                question: "What should you do first when you suspect a phishing email?",
-                options: [
-                    "Click the link to investigate",
-                    "Reply asking for verification",
-                    "Forward to IT security team",
-                    "Delete it immediately"
-                ],
-                correct: 2,
-                explanation: "The first step should be to report it to your IT security team or relevant authority. They can analyze the threat, protect other users, and provide guidance on next steps."
-            },
-            {
-                question: "What does DKIM provide in email security?",
-                options: [
-                    "Sender server authorization",
-                    "Message content integrity",
-                    "Recipient authentication",
-                    "Email encryption"
-                ],
-                correct: 1,
-                explanation: "DKIM (DomainKeys Identified Mail) provides message integrity by using cryptographic signatures. It ensures that the email content hasn't been tampered with during transit."
-            },
-            {
-                question: "Which greeting is more likely in a phishing email?",
-                options: [
-                    "Dear John Smith",
-                    "Hello John",
-                    "Dear Valued Customer",
-                    "Hi there, John"
-                ],
-                correct: 2,
-                explanation: "Generic greetings like 'Dear Valued Customer' are common in phishing emails because attackers often don't have personal information about their targets. Legitimate companies usually personalize communications."
-            },
-            {
-                question: "What percentage of data breaches involve phishing?",
-                options: [
-                    "25%",
-                    "50%",
-                    "75%",
-                    "95%"
-                ],
-                correct: 3,
-                explanation: "According to cybersecurity research, approximately 95% of successful data breaches involve some form of phishing attack, making it the most significant attack vector in cybersecurity."
-            },
-            {
-                question: "What should you check when hovering over a link?",
-                options: [
-                    "Link color",
-                    "Link text content",
-                    "Actual destination URL",
-                    "Link formatting"
-                ],
-                correct: 2,
-                explanation: "Always check the actual destination URL when hovering over a link. Phishing emails often display legitimate-looking link text while the actual URL points to malicious websites."
-            },
-            {
-                question: "What does a DMARC policy of 'p=reject' mean?",
-                options: [
-                    "Monitor but don't block emails",
-                    "Move suspicious emails to spam",
-                    "Block all unauthenticated emails",
-                    "Encrypt all outgoing emails"
-                ],
-                correct: 2,
-                explanation: "A DMARC policy of 'p=reject' instructs receiving mail servers to reject (completely block) all emails that fail SPF and DKIM authentication checks, providing the strongest protection level."
-            }
-        ];
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
-        // DOM elements
-        const phishingSimulation = document.getElementById('phishing-simulation');
-        const phishingFeedback = document.getElementById('phishing-feedback');
-        const markPhishBtn = document.getElementById('mark-phish');
-        const markSafeBtn = document.getElementById('mark-safe');
-        const nextEmailBtn = document.getElementById('next-email');
-        const analyzeBtn = document.getElementById('analyze-headers');
-        const loadGoodBtn = document.getElementById('load-sample-good');
-        const loadBadBtn = document.getElementById('load-sample-bad');
-        const emailHeadersTextarea = document.getElementById('email-headers');
-        const analyzerResults = document.getElementById('analyzer-results');
-        const startQuizBtn = document.getElementById('start-quiz');
-        const restartQuizBtn = document.getElementById('restart-quiz');
-        const quizContainer = document.getElementById('quiz-container');
-        const quizResults = document.getElementById('quiz-results');
-        const quizProgress = document.getElementById('quiz-progress');
-        const quizCounter = document.getElementById('quiz-counter');
+/**
+ * Show toast notification
+ * @param {string} message - Message to display
+ * @param {string} type - Type of notification (success, error, info)
+ */
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    toastContainer.appendChild(toast);
+    
+    // Remove toast after 5 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set up smooth scrolling for navigation links
-            setupSmoothScrolling();
-            
-            // Initialize phishing simulation
-            loadPhishingEmail();
-            
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Add fade-in animation to cards as they come into view
-            setupIntersectionObserver();
+/**
+ * Smooth scroll to section
+ * @param {string} sectionId - ID of the section to scroll to
+ */
+function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
         });
+    }
+}
 
-        // Smooth scrolling for navigation links
-        function setupSmoothScrolling() {
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
+/**
+ * Format date for display
+ * @param {Date} date - Date to format
+ * @returns {string} Formatted date string
+ */
+function formatDate(date) {
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+/**
+ * Generate random ID
+ * @returns {string} Random ID string
+ */
+function generateId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+
+// ============================================================================
+// NAVIGATION FUNCTIONALITY
+// ============================================================================
+
+/**
+ * Initialize navigation functionality
+ */
+function initNavigation() {
+    const navToggle = document.querySelector('.nav-toggle');
+    const navMenu = document.querySelector('.nav-menu');
+    const navLinks = document.querySelectorAll('.nav-menu a');
+
+    // Mobile menu toggle
+    if (navToggle && navMenu) {
+        navToggle.addEventListener('click', () => {
+            const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+            navToggle.setAttribute('aria-expanded', !isExpanded);
+            navMenu.classList.toggle('active');
+        });
+    }
+
+    // Close mobile menu when clicking on links
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    // Smooth scroll for navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').substring(1);
+            scrollToSection(targetId);
+        });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+            navMenu.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
         }
+    });
+}
 
-        // Set up all event listeners
-        function setupEventListeners() {
-            // Phishing simulation controls
-            markPhishBtn.addEventListener('click', () => checkPhishingAnswer(true));
-            markSafeBtn.addEventListener('click', () => checkPhishingAnswer(false));
-            nextEmailBtn.addEventListener('click', nextPhishingEmail);
-            
-            // Email analyzer controls
-            analyzeBtn.addEventListener('click', analyzeEmailHeaders);
-            loadGoodBtn.addEventListener('click', () => loadSampleHeaders('good'));
-            loadBadBtn.addEventListener('click', () => loadSampleHeaders('suspicious'));
-            
-            // Quiz controls
-            startQuizBtn.addEventListener('click', startQuiz);
-            restartQuizBtn.addEventListener('click', restartQuiz);
-            
-            // Keyboard navigation support
-            document.addEventListener('keydown', handleKeyboardNavigation);
+// ============================================================================
+// PHISHING SIMULATION FUNCTIONALITY
+// ============================================================================
+
+/**
+ * Display current email in simulation
+ */
+function displayCurrentEmail() {
+    const emailDisplay = document.getElementById('emailDisplay');
+    const currentEmailSpan = document.getElementById('currentEmail');
+    
+    if (!emailDisplay || currentEmailIndex >= phishingEmails.length) return;
+    
+    const email = phishingEmails[currentEmailIndex];
+    
+    emailDisplay.innerHTML = `
+        <div class="email-header">
+            <div class="email-field">
+                <span class="field-label">From:</span>
+                <span class="field-value">${email.from}</span>
+            </div>
+            <div class="email-field">
+                <span class="field-label">To:</span>
+                <span class="field-value">${email.to}</span>
+            </div>
+            <div class="email-field">
+                <span class="field-label">Subject:</span>
+                <span class="field-value">${email.subject}</span>
+            </div>
+        </div>
+        <div class="email-body">
+            ${email.body.replace(/\n/g, '<br>')}
+        </div>
+    `;
+    
+    if (currentEmailSpan) {
+        currentEmailSpan.textContent = currentEmailIndex + 1;
+    }
+}
+
+/**
+ * Handle simulation answer
+ * @param {boolean} markedAsPhishing - Whether user marked email as phishing
+ */
+function handleSimulationAnswer(markedAsPhishing) {
+    const email = phishingEmails[currentEmailIndex];
+    const feedbackArea = document.getElementById('feedbackArea');
+    const nextButton = document.getElementById('nextEmail');
+    const markPhishingBtn = document.getElementById('markPhishing');
+    const markSafeBtn = document.getElementById('markSafe');
+    const correctCountSpan = document.getElementById('correctCount');
+    
+    const isCorrect = markedAsPhishing === email.isPhishing;
+    if (isCorrect) {
+        correctSimulationAnswers++;
+        if (correctCountSpan) {
+            correctCountSpan.textContent = correctSimulationAnswers;
         }
-
-        // Intersection Observer for fade-in animations
-        function setupIntersectionObserver() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in');
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            document.querySelectorAll('.card').forEach(card => {
-                observer.observe(card);
-            });
-        }
-
-        // Keyboard navigation handler
-        function handleKeyboardNavigation(e) {
-            // Add keyboard shortcuts for common actions
-            if (e.altKey) {
-                switch(e.code) {
-                    case 'KeyN':
-                        e.preventDefault();
-                        if (nextEmailBtn.style.display !== 'none') {
-                            nextPhishingEmail();
-                        }
-                        break;
-                    case 'KeyQ':
-                        e.preventDefault();
-                        if (!quizStarted) {
-                            startQuiz();
-                        }
-                        break;
-                }
-            }
-        }
-
-        // Phishing Simulation Functions
-        function loadPhishingEmail() {
-            const email = phishingEmails[currentPhishingEmail];
-            phishingSimulation.innerHTML = `
-                <div class="phishing-email">
-                    <div class="email-header">
-                        <strong>From:</strong> ${email.from}<br>
-                        <strong>Reply-To:</strong> ${email.replyTo}<br>
-                        <strong>Subject:</strong> ${email.subject}
-                    </div>
-                    <div class="email-body">
-                        ${email.body}
-                    </div>
+    }
+    
+    let feedbackContent = '';
+    
+    if (email.isPhishing) {
+        if (markedAsPhishing) {
+            feedbackContent = `
+                <div class="feedback-title correct">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i>
+                    Correct! This is a phishing email.
+                </div>
+                <p>You successfully identified this phishing attempt. Here are the red flags you should have noticed:</p>
+                <div class="red-flags">
+                    ${email.redFlags.map(flag => `<div class="red-flag-item">${flag}</div>`).join('')}
                 </div>
             `;
-            
-            // Reset feedback and button states
-            phishingFeedback.classList.remove('show');
-            markPhishBtn.disabled = false;
-            markSafeBtn.disabled = false;
-            nextEmailBtn.style.display = 'none';
-        }
-
-        function checkPhishingAnswer(userSaysPhishing) {
-            const email = phishingEmails[currentPhishingEmail];
-            const isCorrect = userSaysPhishing === email.isPhishing;
-            
-            // Disable buttons after answer
-            markPhishBtn.disabled = true;
-            markSafeBtn.disabled = true;
-            nextEmailBtn.style.display = 'inline-block';
-            
-            // Show feedback
-            const feedbackClass = isCorrect ? 'feedback-correct' : 'feedback-incorrect';
-            const resultText = isCorrect ? '✅ Correct!' : '❌ Incorrect';
-            
-            let feedbackContent = `<h4>${resultText}</h4>`;
-            
-            if (email.isPhishing) {
-                feedbackContent += `<p><strong>This is a phishing email.</strong></p>`;
-                if (email.redFlags.length > 0) {
-                    feedbackContent += `<p><strong>Red flags identified:</strong></p><ul>`;
-                    email.redFlags.forEach(flag => {
-                        feedbackContent += `<li>${flag}</li>`;
-                    });
-                    feedbackContent += `</ul>`;
-                }
-            } else {
-                feedbackContent += `<p><strong>This is a legitimate email.</strong></p>`;
-                feedbackContent += `<p>It comes from a verified domain, uses appropriate language, and doesn't exhibit typical phishing red flags.</p>`;
-            }
-            
-            phishingFeedback.className = `phishing-feedback show ${feedbackClass}`;
-            phishingFeedback.innerHTML = feedbackContent;
-        }
-
-        function nextPhishingEmail() {
-            currentPhishingEmail = (currentPhishingEmail + 1) % phishingEmails.length;
-            loadPhishingEmail();
-        }
-
-        // Email Header Analysis Functions
-        function loadSampleHeaders(type) {
-            emailHeadersTextarea.value = sampleHeaders[type];
-        }
-
-        function analyzeEmailHeaders() {
-            const headers = emailHeadersTextarea.value.trim();
-            if (!headers) {
-                alert('Please paste email headers to analyze.');
-                return;
-            }
-            
-            const analysis = parseEmailHeaders(headers);
-            displayAnalysisResults(analysis);
-        }
-
-        function parseEmailHeaders(headers) {
-            const analysis = {
-                headers: {},
-                securityChecks: {},
-                receivedHops: [],
-                verdict: '',
-                recommendations: []
-            };
-            
-            // Parse basic headers
-            const lines = headers.split('\n');
-            let currentHeader = '';
-            let currentValue = '';
-            
-            lines.forEach(line => {
-                if (line.match(/^[A-Za-z-]+:/)) {
-                    // Save previous header
-                    if (currentHeader) {
-                        analysis.headers[currentHeader] = currentValue.trim();
-                    }
-                    
-                    // Start new header
-                    const parts = line.split(':');
-                    currentHeader = parts[0].toLowerCase();
-                    currentValue = parts.slice(1).join(':');
-                } else {
-                    // Continuation of previous header
-                    currentValue += ' ' + line.trim();
-                }
-            });
-            
-            // Save last header
-            if (currentHeader) {
-                analysis.headers[currentHeader] = currentValue.trim();
-            }
-            
-            // Parse Received headers for hops
-            lines.forEach(line => {
-                if (line.toLowerCase().startsWith('received:')) {
-                    const received = line.substring(9).trim();
-                    const ipMatch = received.match(/\[?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]?/);
-                    const hostMatch = received.match(/from\s+([^\s\[]+)/);
-                    const dateMatch = received.match(/;\s*(.+)$/);
-                    
-                    if (ipMatch || hostMatch) {
-                        analysis.receivedHops.push({
-                            ip: ipMatch ? ipMatch[1] : 'Unknown',
-                            host: hostMatch ? hostMatch[1] : 'Unknown',
-                            timestamp: dateMatch ? dateMatch[1] : 'Unknown'
-                        });
-                    }
-                }
-            });
-            
-            // Security analysis
-            analysis.securityChecks = performSecurityChecks(analysis.headers);
-            
-            // Generate verdict and recommendations
-            const { verdict, recommendations } = generateVerdict(analysis.securityChecks, analysis.headers);
-            analysis.verdict = verdict;
-            analysis.recommendations = recommendations;
-            
-            return analysis;
-        }
-
-        function performSecurityChecks(headers) {
-            const checks = {
-                spf: { status: 'unknown', message: 'SPF not checked' },
-                dkim: { status: 'unknown', message: 'DKIM not checked' },
-                dmarc: { status: 'unknown', message: 'DMARC not checked' },
-                domainMatch: { status: 'unknown', message: 'Domain matching not checked' },
-                timestamp: { status: 'unknown', message: 'Timestamp not checked' }
-            };
-            
-            // Check Authentication-Results for SPF, DKIM, DMARC
-            if (headers['authentication-results']) {
-                const authResults = headers['authentication-results'].toLowerCase();
-                
-                if (authResults.includes('spf=pass')) {
-                    checks.spf = { status: 'pass', message: 'SPF validation passed' };
-                } else if (authResults.includes('spf=fail')) {
-                    checks.spf = { status: 'fail', message: 'SPF validation failed - sender not authorized' };
-                }
-                
-                if (authResults.includes('dkim=pass')) {
-                    checks.dkim = { status: 'pass', message: 'DKIM signature valid' };
-                } else if (authResults.includes('dkim=fail') || authResults.includes('dkim=none')) {
-                    checks.dkim = { status: 'fail', message: 'DKIM signature missing or invalid' };
-                }
-                
-                if (authResults.includes('dmarc=pass')) {
-                    checks.dmarc = { status: 'pass', message: 'DMARC policy satisfied' };
-                } else if (authResults.includes('dmarc=fail')) {
-                    checks.dmarc = { status: 'fail', message: 'DMARC policy violation detected' };
-                }
-            }
-            
-            // Check domain matching between From and Return-Path
-            if (headers['from'] && headers['return-path']) {
-                const fromDomain = extractDomain(headers['from']);
-                const returnPathDomain = extractDomain(headers['return-path']);
-                
-                if (fromDomain && returnPathDomain && fromDomain.toLowerCase() === returnPathDomain.toLowerCase()) {
-                    checks.domainMatch = { status: 'pass', message: 'From and Return-Path domains match' };
-                } else {
-                    checks.domainMatch = { status: 'warning', message: 'From and Return-Path domains do not match' };
-                }
-            }
-            
-            // Check timestamp validity
-            if (headers['date']) {
-                const emailDate = new Date(headers['date']);
-                const now = new Date();
-                const daysDiff = Math.abs(now - emailDate) / (1000 * 60 * 60 * 24);
-                
-                if (!isNaN(emailDate.getTime()) && daysDiff < 30) {
-                    checks.timestamp = { status: 'pass', message: 'Date appears valid and recent' };
-                } else if (isNaN(emailDate.getTime())) {
-                    checks.timestamp = { status: 'fail', message: 'Invalid or malformed date' };
-                } else {
-                    checks.timestamp = { status: 'warning', message: 'Email date is more than 30 days old' };
-                }
-            }
-            
-            return checks;
-        }
-
-        function extractDomain(emailOrAddress) {
-            // Extract domain from email address or angle brackets
-            const match = emailOrAddress.match(/[<\s]?([^@\s<>]+@)?([^>\s]+\.[^>\s]+)[>\s]?/);
-            return match ? match[2] : null;
-        }
-
-        function generateVerdict(securityChecks, headers) {
-            let suspiciousCount = 0;
-            let failCount = 0;
-            const recommendations = [];
-            
-            Object.values(securityChecks).forEach(check => {
-                if (check.status === 'fail') failCount++;
-                if (check.status === 'warning' || check.status === 'fail') suspiciousCount++;
-            });
-            
-            let verdict = '';
-            if (failCount === 0 && suspiciousCount === 0) {
-                verdict = 'This email appears legitimate with good security indicators.';
-            } else if (failCount >= 2 || suspiciousCount >= 3) {
-                verdict = 'This email has multiple suspicious indicators and may be a phishing attempt.';
-                recommendations.push('Do not click any links or download attachments');
-                recommendations.push('Verify the sender through alternative communication methods');
-                recommendations.push('Report this email to your security team');
-            } else {
-                verdict = 'This email has some suspicious indicators that warrant caution.';
-                recommendations.push('Exercise caution with any links or attachments');
-                recommendations.push('Verify sender authenticity if requesting sensitive actions');
-            }
-            
-            // Add specific recommendations based on failed checks
-            if (securityChecks.spf.status === 'fail') {
-                recommendations.push('SPF failure indicates potential sender spoofing');
-            }
-            if (securityChecks.dkim.status === 'fail') {
-                recommendations.push('Missing DKIM signature suggests email may have been tampered with');
-            }
-            if (securityChecks.domainMatch.status === 'warning') {
-                recommendations.push('Mismatched domains could indicate spoofing attempt');
-            }
-            
-            return { verdict, recommendations };
-        }
-
-        function displayAnalysisResults(analysis) {
-            let html = `
-                <h3><i class="fas fa-clipboard-list" style="color: var(--accent-teal);"></i> Analysis Results</h3>
-                
-                <div class="security-verdict">
-                    <h4>Security Verdict</h4>
-                    <p><strong>${analysis.verdict}</strong></p>
+        } else {
+            feedbackContent = `
+                <div class="feedback-title incorrect">
+                    <i class="fas fa-times-circle" aria-hidden="true"></i>
+                    Incorrect. This is actually a phishing email!
                 </div>
-            `;
-            
-            // Security checks summary
-            html += `
-                <h4>Security Checks</h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-sm); margin-bottom: var(--space-md);">
-            `;
-            
-            Object.entries(analysis.securityChecks).forEach(([check, result]) => {
-                const statusClass = result.status === 'pass' ? 'security-good' : 
-                                  result.status === 'warning' ? 'security-warning' : 
-                                  result.status === 'fail' ? 'security-danger' : '';
-                
-                html += `
-                    <div>
-                        <strong>${check.toUpperCase()}:</strong><br>
-                        <span class="security-indicator ${statusClass}">${result.message}</span>
-                    </div>
-                `;
-            });
-            
-            html += `</div>`;
-            
-            // Recommendations
-            if (analysis.recommendations.length > 0) {
-                html += `
-                    <h4>Recommendations</h4>
-                    <ul>
-                `;
-                analysis.recommendations.forEach(rec => {
-                    html += `<li>${rec}</li>`;
-                });
-                html += `</ul>`;
-            }
-            
-            // Key headers table
-            html += `
-                <h4>Key Email Headers</h4>
-                <table class="header-table">
-                    <thead>
-                        <tr>
-                            <th>Header</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            const importantHeaders = ['from', 'reply-to', 'return-path', 'subject', 'date', 'message-id'];
-            importantHeaders.forEach(header => {
-                if (analysis.headers[header]) {
-                    html += `
-                        <tr>
-                            <td><strong>${header.toUpperCase()}</strong></td>
-                            <td>${escapeHtml(analysis.headers[header])}</td>
-                        </tr>
-                    `;
-                }
-            });
-            
-            html += `
-                    </tbody>
-                </table>
-            `;
-            
-            // Received hops
-            if (analysis.receivedHops.length > 0) {
-                html += `
-                    <h4>Email Route (Received Hops)</h4>
-                    <table class="header-table">
-                        <thead>
-                            <tr>
-                                <th>Host</th>
-                                <th>IP Address</th>
-                                <th>Timestamp</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                analysis.receivedHops.forEach(hop => {
-                    html += `
-                        <tr>
-                            <td>${escapeHtml(hop.host)}</td>
-                            <td>${escapeHtml(hop.ip)}</td>
-                            <td>${escapeHtml(hop.timestamp)}</td>
-                        </tr>
-                    `;
-                });
-                
-                html += `
-                        </tbody>
-                    </table>
-                `;
-            }
-            
-            analyzerResults.innerHTML = html;
-            analyzerResults.classList.add('show');
-        }
-
-        // Quiz Functions
-        function startQuiz() {
-            quizStarted = true;
-            currentQuizQuestion = 0;
-            quizScore = 0;
-            quizAnswers = [];
-            
-            startQuizBtn.style.display = 'none';
-            restartQuizBtn.style.display = 'none';
-            quizResults.style.display = 'none';
-            
-            showQuizQuestion();
-        }
-
-        function showQuizQuestion() {
-            if (currentQuizQuestion >= quizQuestions.length) {
-                showQuizResults();
-                return;
-            }
-            
-            const question = quizQuestions[currentQuizQuestion];
-            const progress = ((currentQuizQuestion + 1) / quizQuestions.length) * 100;
-            
-            // Update progress bar
-            quizProgress.style.width = progress + '%';
-            quizProgress.parentElement.setAttribute('aria-valuenow', currentQuizQuestion + 1);
-            quizCounter.textContent = `Question ${currentQuizQuestion + 1} of ${quizQuestions.length}`;
-            
-            // Create question HTML
-            let html = `
-                <div class="quiz-question">
-                    <h3>Question ${currentQuizQuestion + 1}</h3>
-                    <p><strong>${question.question}</strong></p>
-                    <ul class="quiz-options">
-            `;
-            
-            question.options.forEach((option, index) => {
-                html += `
-                    <li class="quiz-option">
-                        <label>
-                            <input type="radio" name="quiz-answer" value="${index}" />
-                            ${option}
-                        </label>
-                    </li>
-                `;
-            });
-            
-            html += `
-                    </ul>
-                    <div class="quiz-explanation" id="quiz-explanation-${currentQuizQuestion}">
-                        <p><strong>Explanation:</strong> ${question.explanation}</p>
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="submitQuizAnswer()" id="submit-answer" style="margin-top: var(--space-md);">
-                        Submit Answer
-                    </button>
-                </div>
-            `;
-            
-            quizContainer.innerHTML = html;
-        }
-
-        function submitQuizAnswer() {
-            const selectedOption = document.querySelector('input[name="quiz-answer"]:checked');
-            if (!selectedOption) {
-                alert('Please select an answer.');
-                return;
-            }
-            
-            const userAnswer = parseInt(selectedOption.value);
-            const question = quizQuestions[currentQuizQuestion];
-            const isCorrect = userAnswer === question.correct;
-            
-            if (isCorrect) {
-                quizScore++;
-            }
-            
-            quizAnswers.push({
-                question: currentQuizQuestion,
-                userAnswer: userAnswer,
-                correct: isCorrect
-            });
-            
-            // Show explanation
-            const explanation = document.getElementById(`quiz-explanation-${currentQuizQuestion}`);
-            explanation.classList.add('show');
-            
-            // Update submit button to next button
-            const submitBtn = document.getElementById('submit-answer');
-            submitBtn.textContent = currentQuizQuestion === quizQuestions.length - 1 ? 'View Results' : 'Next Question';
-            submitBtn.onclick = nextQuizQuestion;
-            
-            // Disable option selection
-            document.querySelectorAll('input[name="quiz-answer"]').forEach(input => {
-                input.disabled = true;
-                if (parseInt(input.value) === question.correct) {
-                    input.parentElement.style.background = 'rgba(16, 185, 129, 0.2)';
-                    input.parentElement.style.borderColor = 'var(--success)';
-                } else if (input.checked && !isCorrect) {
-                    input.parentElement.style.background = 'rgba(239, 68, 68, 0.2)';
-                    input.parentElement.style.borderColor = 'var(--error)';
-                }
-            });
-        }
-
-        function nextQuizQuestion() {
-            currentQuizQuestion++;
-            showQuizQuestion();
-        }
-
-        function showQuizResults() {
-            const percentage = Math.round((quizScore / quizQuestions.length) * 100);
-            let message = '';
-            let certificateHtml = '';
-            
-            if (percentage >= 90) {
-                message = '🏆 Excellent! You have a strong understanding of cybersecurity concepts.';
-                certificateHtml = generateCertificate('Excellence', percentage);
-            } else if (percentage >= 70) {
-                message = '👍 Good job! You have a solid foundation but there\'s room for improvement.';
-                certificateHtml = generateCertificate('Competency', percentage);
-            } else if (percentage >= 50) {
-                message = '📚 You\'re on the right track, but consider reviewing the learning materials.';
-            } else {
-                message = '🎯 This is a good learning opportunity. Review the materials and try again!';
-            }
-            
-            quizProgress.style.width = '100%';
-            quizProgress.parentElement.setAttribute('aria-valuenow', quizQuestions.length);
-            quizCounter.textContent = 'Quiz Complete!';
-            
-            let html = `
-                <h3><i class="fas fa-trophy" style="color: var(--accent-teal);"></i> Quiz Results</h3>
-                <div style="text-align: center; margin-bottom: var(--space-lg);">
-                    <div style="font-size: 3rem; font-weight: bold; color: var(--accent-teal); margin-bottom: var(--space-sm);">
-                        ${quizScore}/${quizQuestions.length}
-                    </div>
-                    <div style="font-size: 2rem; margin-bottom: var(--space-sm);">
-                        ${percentage}%
-                    </div>
-                    <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto var(--space-md);">
-                        ${message}
-                    </p>
-                </div>
-                
-                ${certificateHtml}
-                
-                <h4>Question Review</h4>
-                <div style="text-align: left;">
-            `;
-            
-            quizAnswers.forEach((answer, index) => {
-                const question = quizQuestions[answer.question];
-                const statusIcon = answer.correct ? '✅' : '❌';
-                const statusClass = answer.correct ? 'security-good' : 'security-danger';
-                
-                html += `
-                    <div style="margin-bottom: var(--space-md); padding: var(--space-sm); border: 1px solid var(--border); border-radius: var(--radius);">
-                        <p><strong>Question ${index + 1}:</strong> ${question.question}</p>
-                        <p><span class="security-indicator ${statusClass}">${statusIcon} ${answer.correct ? 'Correct' : 'Incorrect'}</span></p>
-                        <p><strong>Correct answer:</strong> ${question.options[question.correct]}</p>
-                        <p><strong>Explanation:</strong> ${question.explanation}</p>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            
-            quizContainer.innerHTML = html;
-            quizResults.style.display = 'block';
-            restartQuizBtn.style.display = 'inline-block';
-            quizStarted = false;
-        }
-
-        function generateCertificate(level, percentage) {
-            const date = new Date().toLocaleDateString();
-            return `
-                <div id="certificate" style="
-                    background: linear-gradient(135deg, var(--card-bg) 0%, var(--glass-bg) 100%);
-                    border: 2px solid var(--accent-teal);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-xl);
-                    margin: var(--space-lg) 0;
-                    text-align: center;
-                    position: relative;
-                    overflow: hidden;
-                ">
-                    <div style="position: absolute; top: -50px; left: -50px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%);"></div>
-                    <div style="position: absolute; bottom: -50px; right: -50px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);"></div>
-                    
-                    <h3 style="color: var(--accent-teal); margin-bottom: var(--space-md);">
-                        <i class="fas fa-certificate" aria-hidden="true"></i>
-                        Certificate of ${level}
-                    </h3>
-                    <p style="font-size: 1.2rem; margin-bottom: var(--space-sm);">
-                        This certifies that the student has successfully completed
-                    </p>
-                    <h4 style="color: var(--accent-blue); margin-bottom: var(--space-sm);">
-                        Phishing Awareness & Email Security Quiz
-                    </h4>
-                    <p style="margin-bottom: var(--space-md);">
-                        with a score of <strong>${percentage}%</strong>
-                    </p>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                        <!-- Edit group info here -->
-                        Issued by: 3 BScIT Students (Intern ID: 226)<br>
-                        Date: ${date}
-                    </p>
-                    
-                    <button type="button" class="btn btn-small btn-secondary" onclick="downloadCertificate()" style="margin-top: var(--space-sm);">
-                        <i class="fas fa-download" aria-hidden="true"></i>
-                        Download Certificate
-                    </button>
+                <p>This email was designed to steal your personal information. Here are the warning signs you missed:</p>
+                <div class="red-flags">
+                    ${email.redFlags.map(flag => `<div class="red-flag-item">${flag}</div>`).join('')}
                 </div>
             `;
         }
-
-        function restartQuiz() {
-            currentQuizQuestion = 0;
-            quizScore = 0;
-            quizAnswers = [];
-            quizStarted = false;
-            
-            quizContainer.innerHTML = '';
-            quizResults.style.display = 'none';
-            restartQuizBtn.style.display = 'none';
-            startQuizBtn.style.display = 'inline-block';
-            
-            // Reset progress bar
-            quizProgress.style.width = '0%';
-            quizProgress.parentElement.setAttribute('aria-valuenow', 0);
-            quizCounter.textContent = 'Question 1 of 10';
+    } else {
+        if (markedAsPhishing) {
+            feedbackContent = `
+                <div class="feedback-title incorrect">
+                    <i class="fas fa-times-circle" aria-hidden="true"></i>
+                    Incorrect. This is actually a legitimate email.
+                </div>
+                <p>This email is from a trusted source. Here's what makes it legitimate:</p>
+                <ul>
+                    <li>Sender domain matches the organization (github.com)</li>
+                    <li>Professional and informative tone</li>
+                    <li>Links direct to official website</li>
+                    <li>No urgent demands for personal information</li>
+                    <li>Clear security notification with helpful advice</li>
+                </ul>
+            `;
+        } else {
+            feedbackContent = `
+                <div class="feedback-title correct">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i>
+                    Correct! This is a legitimate email.
+                </div>
+                <p>You correctly identified this as a safe email. This demonstrates good security awareness!</p>
+                <ul>
+                    <li>Legitimate sender domain</li>
+                    <li>Professional communication style</li>
+                    <li>Helpful security information</li>
+                    <li>No suspicious requests</li>
+                </ul>
+            `;
         }
-
-        // Utility Functions
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+    }
+    
+    if (feedbackArea) {
+        feedbackArea.innerHTML = feedbackContent;
+        feedbackArea.className = `feedback-area ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+        feedbackArea.style.display = 'block';
+    }
+    
+    // Disable buttons and show next button
+    if (markPhishingBtn) markPhishingBtn.disabled = true;
+    if (markSafeBtn) markSafeBtn.disabled = true;
+    
+    if (currentEmailIndex < phishingEmails.length - 1) {
+        if (nextButton) {
+            nextButton.style.display = 'block';
+            nextButton.focus();
         }
+    } else {
+        // Show final results
+        showSimulationResults();
+    }
+    
+    // Show toast notification
+    showToast(
+        isCorrect ? 'Correct answer!' : 'Incorrect answer. Review the feedback to learn more.',
+        isCorrect ? 'success' : 'error'
+    );
+}
 
-        function downloadCheatSheet() {
-            // Generate a comprehensive cheat sheet
-            const cheatSheetContent = `
-PHISHING IDENTIFICATION CHEAT SHEET
-================================
+/**
+ * Move to next email in simulation
+ */
+function showNextEmail() {
+    currentEmailIndex++;
+    const feedbackArea = document.getElementById('feedbackArea');
+    const nextButton = document.getElementById('nextEmail');
+    const markPhishingBtn = document.getElementById('markPhishing');
+    const markSafeBtn = document.getElementById('markSafe');
+    
+    // Reset UI
+    if (feedbackArea) feedbackArea.style.display = 'none';
+    if (nextButton) nextButton.style.display = 'none';
+    if (markPhishingBtn) markPhishingBtn.disabled = false;
+    if (markSafeBtn) markSafeBtn.disabled = false;
+    
+    displayCurrentEmail();
+    
+    if (currentEmailIndex >= phishingEmails.length) {
+        showSimulationResults();
+    }
+}
 
-RED FLAGS TO WATCH FOR:
-• Urgent/threatening language ("Account will be closed!")
-• Generic greetings ("Dear Customer" instead of your name)  
-• Suspicious sender domains (paypaI.com vs paypal.com)
-• Mismatched Reply-To addresses
-• Unexpected attachments, especially .exe, .zip files
+/**
+ * Show simulation completion results
+ */
+function showSimulationResults() {
+    const emailDisplay = document.getElementById('emailDisplay');
+    const simulationControls = document.querySelector('.simulation-controls');
+    const nextButton = document.getElementById('nextEmail');
+    
+    const percentage = Math.round((correctSimulationAnswers / phishingEmails.length) * 100);
+    let performanceMessage = '';
+    
+    if (percentage >= 80) {
+        performanceMessage = 'Excellent! You have strong phishing detection skills.';
+    } else if (percentage >= 60) {
+        performanceMessage = 'Good job! With some practice, you can improve your detection skills.';
+    } else {
+        performanceMessage = 'Consider reviewing the educational materials to improve your phishing detection abilities.';
+    }
+    
+    if (emailDisplay) {
+        emailDisplay.innerHTML = `
+            <div class="simulation-results">
+                <h3><i class="fas fa-trophy" aria-hidden="true"></i> Simulation Complete!</h3>
+                <div class="results-summary">
+                    <div class="score-display">${correctSimulationAnswers}/${phishingEmails.length}</div>
+                    <div class="percentage">${percentage}%</div>
+                </div>
+                <p class="performance-message">${performanceMessage}</p>
+                <button class="cta-button primary" onclick="restartSimulation()">
+                    <i class="fas fa-redo" aria-hidden="true"></i>
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+    
+    if (simulationControls) simulationControls.style.display = 'none';
+    if (nextButton) nextButton.style.display = 'none';
+    
+    showToast('Phishing simulation completed!', 'success');
+}
+
+/**
+ * Restart the phishing simulation
+ */
+function restartSimulation() {
+    currentEmailIndex = 0;
+    correctSimulationAnswers = 0;
+    
+    const feedbackArea = document.getElementById('feedbackArea');
+    const simulationControls = document.querySelector('.simulation-controls');
+    const correctCountSpan = document.getElementById('correctCount');
+    
+    if (feedbackArea) feedbackArea.style.display = 'none';
+    if (simulationControls) simulationControls.style.display = 'flex';
+    if (correctCountSpan) correctCountSpan.textContent = '0';
+    
+    displayCurrentEmail();
+    showToast('Simulation restarted!', 'info');
+}
+
+/**
+ * Initialize phishing simulation
+ */
+function initSimulation() {
+    displayCurrentEmail();
+    
+    const markPhishingBtn = document.getElementById('markPhishing');
+    const markSafeBtn = document.getElementById('markSafe');
+    const nextButton = document.getElementById('nextEmail');
+    
+    if (markPhishingBtn) {
+        markPhishingBtn.addEventListener('click', () => handleSimulationAnswer(true));
+    }
+    
+    if (markSafeBtn) {
+        markSafeBtn.addEventListener('click', () => handleSimulationAnswer(false));
+    }
+    
+    if (nextButton) {
+        nextButton.addEventListener('click', showNextEmail);
+    }
+}
+
+// ============================================================================
+// EMAIL HEADER ANALYZER FUNCTIONALITY
+// ============================================================================
+
+/**
+ * Parse email headers and extract key information
+ * @param {string} headers - Raw email headers
+ * @returns {Object} Parsed header information
+ */
+function parseEmailHeaders(headers) {
+    const lines = headers.split('\n');
+    const parsed = {
+        from: '',
+        returnPath: '',
+        received: [],
+        authResults: {
+            spf: 'none',
+            dkim: 'none',
+            dmarc: 'none'
+        },
+        messageId: '',
+        date: '',
+        subject: ''
+    };
+    
+    let currentField = '';
+    let currentValue = '';
+    
+    for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        
+        // Check if this is a new field (starts with field name followed by colon)
+        const fieldMatch = line.match(/^([A-Za-z-]+):\s*(.*)$/);
+        if (fieldMatch) {
+            // Process previous field
+            if (currentField && currentValue) {
+                processHeaderField(parsed, currentField.toLowerCase(), currentValue);
+            }
+            
+            currentField = fieldMatch[1];
+            currentValue = fieldMatch[2];
+        } else if (line.startsWith(' ') || line.startsWith('\t')) {
+            // Continuation of previous field
+            currentValue += ' ' + line.trim();
+        }
+    }
+    
+    // Process final field
+    if (currentField && currentValue) {
+        processHeaderField(parsed, currentField.toLowerCase(), currentValue);
+    }
+    
+    return parsed;
+}
+
+/**
+ * Process individual header field
+ * @param {Object} parsed - Parsed headers object
+ * @param {string} field - Field name
+ * @param {string} value - Field value
+ */
+function processHeaderField(parsed, field, value) {
+    switch (field) {
+        case 'from':
+            parsed.from = value;
+            break;
+        case 'return-path':
+            parsed.returnPath = value;
+            break;
+        case 'received':
+            parsed.received.push(value);
+            break;
+        case 'authentication-results':
+            parseAuthResults(parsed, value);
+            break;
+        case 'message-id':
+            parsed.messageId = value;
+            break;
+        case 'date':
+            parsed.date = value;
+            break;
+        case 'subject':
+            parsed.subject = value;
+            break;
+    }
+}
+
+/**
+ * Parse authentication results
+ * @param {Object} parsed - Parsed headers object
+ * @param {string} authResults - Authentication results string
+ */
+function parseAuthResults(parsed, authResults) {
+    if (authResults.includes('spf=pass')) {
+        parsed.authResults.spf = 'pass';
+    } else if (authResults.includes('spf=fail')) {
+        parsed.authResults.spf = 'fail';
+    } else if (authResults.includes('spf=softfail')) {
+        parsed.authResults.spf = 'softfail';
+    }
+    
+    if (authResults.includes('dkim=pass')) {
+        parsed.authResults.dkim = 'pass';
+    } else if (authResults.includes('dkim=fail')) {
+        parsed.authResults.dkim = 'fail';
+    }
+    
+    if (authResults.includes('dmarc=pass')) {
+        parsed.authResults.dmarc = 'pass';
+    } else if (authResults.includes('dmarc=fail')) {
+        parsed.authResults.dmarc = 'fail';
+    }
+}
+
+/**
+ * Analyze parsed headers and generate security verdict
+ * @param {Object} parsed - Parsed header information
+ * @returns {Object} Analysis results
+ */
+function analyzeHeaders(parsed) {
+    const analysis = {
+        overallRisk: 'low',
+        riskScore: 0,
+        issues: [],
+        recommendations: []
+    };
+    
+    // Check SPF
+    if (parsed.authResults.spf === 'fail') {
+        analysis.riskScore += 30;
+        analysis.issues.push('SPF check failed - sender IP not authorized');
+        analysis.recommendations.push('Verify sender authenticity through alternative means');
+    } else if (parsed.authResults.spf === 'softfail') {
+        analysis.riskScore += 15;
+        analysis.issues.push('SPF soft fail - sender IP questionable');
+    }
+    
+    // Check DKIM
+    if (parsed.authResults.dkim === 'fail') {
+        analysis.riskScore += 25;
+        analysis.issues.push('DKIM signature validation failed');
+        analysis.recommendations.push('Email content may have been tampered with');
+    } else if (parsed.authResults.dkim === 'none') {
+        analysis.riskScore += 10;
+        analysis.issues.push('No DKIM signature found');
+    }
+    
+    // Check DMARC
+    if (parsed.authResults.dmarc === 'fail') {
+        analysis.riskScore += 35;
+        analysis.issues.push('DMARC policy check failed');
+        analysis.recommendations.push('High likelihood of spoofed sender');
+    } else if (parsed.authResults.dmarc === 'none') {
+        analysis.riskScore += 5;
+        analysis.issues.push('No DMARC policy found');
+    }
+    
+    // Check for suspicious patterns
+    if (parsed.from && parsed.returnPath) {
+        const fromDomain = parsed.from.match(/@([^>]+)/);
+        const returnDomain = parsed.returnPath.match(/@([^>]+)/);
+        if (fromDomain && returnDomain && fromDomain[1] !== returnDomain[1]) {
+            analysis.riskScore += 20;
+            analysis.issues.push('From domain differs from Return-Path domain');
+        }
+    }
+    
+    // Determine overall risk level
+    if (analysis.riskScore >= 60) {
+        analysis.overallRisk = 'high';
+    } else if (analysis.riskScore >= 30) {
+        analysis.overallRisk = 'medium';
+    } else {
+        analysis.overallRisk = 'low';
+    }
+    
+    return analysis;
+}
+
+/**
+ * Display header analysis results
+ * @param {Object} parsed - Parsed header information
+ * @param {Object} analysis - Analysis results
+ */
+function displayAnalysisResults(parsed, analysis) {
+    const resultsContainer = document.getElementById('analyzerResults');
+    if (!resultsContainer) return;
+    
+    const getRiskColor = (risk) => {
+        switch (risk) {
+            case 'high': return 'fail';
+            case 'medium': return 'warning';
+            case 'low': return 'pass';
+            default: return 'warning';
+        }
+    };
+    
+    const getStatusClass = (status) => {
+        if (status === 'pass') return 'pass';
+        if (status === 'fail') return 'fail';
+        return 'warning';
+    };
+    
+    resultsContainer.innerHTML = `
+        <div class="result-section">
+            <h3><i class="fas fa-chart-bar" aria-hidden="true"></i> Overall Assessment</h3>
+            <div class="result-item ${getRiskColor(analysis.overallRisk)}">
+                <span class="result-label">Security Risk Level:</span>
+                <span class="result-status ${getRiskColor(analysis.overallRisk)}">${analysis.overallRisk.toUpperCase()}</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Risk Score:</span>
+                <span class="result-value">${analysis.riskScore}/100</span>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <h3><i class="fas fa-shield-alt" aria-hidden="true"></i> Authentication Results</h3>
+            <div class="result-item ${getStatusClass(parsed.authResults.spf)}">
+                <span class="result-label">SPF (Sender Policy Framework):</span>
+                <span class="result-status ${getStatusClass(parsed.authResults.spf)}">${parsed.authResults.spf.toUpperCase()}</span>
+            </div>
+            <div class="result-item ${getStatusClass(parsed.authResults.dkim)}">
+                <span class="result-label">DKIM (DomainKeys Identified Mail):</span>
+                <span class="result-status ${getStatusClass(parsed.authResults.dkim)}">${parsed.authResults.dkim.toUpperCase()}</span>
+            </div>
+            <div class="result-item ${getStatusClass(parsed.authResults.dmarc)}">
+                <span class="result-label">DMARC (Domain-based Authentication):</span>
+                <span class="result-status ${getStatusClass(parsed.authResults.dmarc)}">${parsed.authResults.dmarc.toUpperCase()}</span>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <h3><i class="fas fa-info-circle" aria-hidden="true"></i> Header Details</h3>
+            <div class="result-item">
+                <span class="result-label">From:</span>
+                <span class="result-value">${parsed.from || 'Not found'}</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Return-Path:</span>
+                <span class="result-value">${parsed.returnPath || 'Not found'}</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Message-ID:</span>
+                <span class="result-value">${parsed.messageId || 'Not found'}</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Date:</span>
+                <span class="result-value">${parsed.date || 'Not found'}</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Received Hops:</span>
+                <span class="result-value">${parsed.received.length} hop(s)</span>
+            </div>
+        </div>
+        
+        ${analysis.issues.length > 0 ? `
+        <div class="result-section">
+            <h3><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Security Issues Found</h3>
+            ${analysis.issues.map(issue => `
+                <div class="result-item fail">
+                    <span class="result-label">${issue}</span>
+                </div>
+            `).join('')}
+        </div>
+        ` : ''}
+        
+        ${analysis.recommendations.length > 0 ? `
+        <div class="result-section">
+            <h3><i class="fas fa-lightbulb" aria-hidden="true"></i> Recommendations</h3>
+            ${analysis.recommendations.map(rec => `
+                <div class="result-item warning">
+                    <span class="result-label">${rec}</span>
+                </div>
+            `).join('')}
+        </div>
+        ` : ''}
+    `;
+    
+    resultsContainer.style.display = 'block';
+    
+    // Show toast based on risk level
+    const toastMessages = {
+        low: 'Email appears to be legitimate',
+        medium: 'Email has some security concerns',
+        high: 'Email has significant security risks'
+    };
+    
+    const toastTypes = {
+        low: 'success',
+        medium: 'info',
+        high: 'error'
+    };
+    
+    showToast(toastMessages[analysis.overallRisk], toastTypes[analysis.overallRisk]);
+}
+
+/**
+ * Analyze email headers from input
+ */
+function analyzeEmailHeaders() {
+    const headerInput = document.getElementById('headerInput');
+    if (!headerInput) return;
+    
+    const headers = headerInput.value.trim();
+    if (!headers) {
+        showToast('Please paste email headers to analyze', 'error');
+        return;
+    }
+    
+    try {
+        const parsed = parseEmailHeaders(headers);
+        const analysis = analyzeHeaders(parsed);
+        displayAnalysisResults(parsed, analysis);
+        
+        // Scroll to results
+        const resultsContainer = document.getElementById('analyzerResults');
+        if (resultsContainer) {
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    } catch (error) {
+        showToast('Error analyzing headers. Please check the format and try again.', 'error');
+        console.error('Header analysis error:', error);
+    }
+}
+
+/**
+ * Load sample header examples
+ * @param {string} type - Type of example (good or suspicious)
+ */
+function loadHeaderExample(type) {
+    const headerInput = document.getElementById('headerInput');
+    if (!headerInput) return;
+    
+    if (sampleHeaders[type]) {
+        headerInput.value = sampleHeaders[type];
+        showToast(`Loaded ${type} email header example`, 'info');
+    }
+}
+
+/**
+ * Initialize email header analyzer
+ */
+function initEmailAnalyzer() {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loadGoodBtn = document.getElementById('loadGoodExample');
+    const loadSuspiciousBtn = document.getElementById('loadSuspiciousExample');
+    
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', analyzeEmailHeaders);
+    }
+    
+    if (loadGoodBtn) {
+        loadGoodBtn.addEventListener('click', () => loadHeaderExample('good'));
+    }
+    
+    if (loadSuspiciousBtn) {
+        loadSuspiciousBtn.addEventListener('click', () => loadHeaderExample('suspicious'));
+    }
+}
+
+// ============================================================================
+// QUIZ FUNCTIONALITY
+// ============================================================================
+
+/**
+ * Start the cybersecurity quiz
+ */
+function startQuiz() {
+    currentQuizQuestion = 0;
+    quizScore = 0;
+    quizAnswers = [];
+    isQuizActive = true;
+    
+    const quizContent = document.getElementById('quizContent');
+    const quizStats = document.getElementById('quizStats');
+    const certificateSection = document.getElementById('certificateSection');
+    
+    if (quizStats) quizStats.style.display = 'flex';
+    if (certificateSection) certificateSection.style.display = 'none';
+    
+    updateQuizProgress();
+    displayQuizQuestion();
+    
+    showToast('Quiz started! Good luck!', 'info');
+}
+
+/**
+ * Display current quiz question
+ */
+function displayQuizQuestion() {
+    if (currentQuizQuestion >= quizQuestions.length) {
+        showQuizResults();
+        return;
+    }
+    
+    const question = quizQuestions[currentQuizQuestion];
+    const quizContent = document.getElementById('quizContent');
+    
+    if (!quizContent) return;
+    
+    quizContent.innerHTML = `
+        <div class="question-container">
+            <h3 class="question-title">Question ${currentQuizQuestion + 1}: ${question.question}</h3>
+            <div class="answer-options">
+                ${question.options.map((option, index) => `
+                    <div class="answer-option" data-index="${index}" role="button" tabindex="0" aria-describedby="question-${question.id}">
+                        ${option}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    // Add click and keyboard event listeners to answer options
+    const answerOptions = quizContent.querySelectorAll('.answer-option');
+    answerOptions.forEach((option, index) => {
+        option.addEventListener('click', () => selectQuizAnswer(index));
+        option.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectQuizAnswer(index);
+            }
+        });
+    });
+}
+
+/**
+ * Handle quiz answer selection
+ * @param {number} selectedIndex - Index of selected answer
+ */
+function selectQuizAnswer(selectedIndex) {
+    const question = quizQuestions[currentQuizQuestion];
+    const isCorrect = selectedIndex === question.correct;
+    const quizContent = document.getElementById('quizContent');
+    
+    if (!quizContent) return;
+    
+    // Record answer
+    quizAnswers.push({
+        questionId: question.id,
+        question: question.question,
+        selectedAnswer: question.options[selectedIndex],
+        correctAnswer: question.options[question.correct],
+        isCorrect: isCorrect
+    });
+    
+    if (isCorrect) {
+        quizScore++;
+        updateQuizStats();
+    }
+    
+    // Update UI to show correct/incorrect answers
+    const answerOptions = quizContent.querySelectorAll('.answer-option');
+    answerOptions.forEach((option, index) => {
+        option.style.pointerEvents = 'none';
+        option.removeAttribute('tabindex');
+        
+        if (index === question.correct) {
+            option.classList.add('correct');
+        } else if (index === selectedIndex && !isCorrect) {
+            option.classList.add('incorrect');
+        }
+    });
+    
+    // Show explanation
+    const questionContainer = quizContent.querySelector('.question-container');
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.className = `question-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    feedbackDiv.innerHTML = `
+        <strong>${isCorrect ? 'Correct!' : 'Incorrect.'}</strong><br>
+        ${question.explanation}
+    `;
+    
+    questionContainer.appendChild(feedbackDiv);
+    
+    // Add next question button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'next-question-btn';
+    nextBtn.textContent = currentQuizQuestion === quizQuestions.length - 1 ? 'See Results' : 'Next Question';
+    nextBtn.addEventListener('click', () => {
+        currentQuizQuestion++;
+        updateQuizProgress();
+        displayQuizQuestion();
+    });
+    
+    questionContainer.appendChild(nextBtn);
+    nextBtn.focus();
+    
+    // Show toast notification
+    showToast(
+        isCorrect ? 'Correct answer!' : 'Incorrect. Review the explanation.',
+        isCorrect ? 'success' : 'error'
+    );
+}
+
+/**
+ * Update quiz progress bar and text
+ */
+function updateQuizProgress() {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    const progress = ((currentQuizQuestion) / quizQuestions.length) * 100;
+    
+    if (progressFill) {
+        progressFill.style.width = `${progress}%`;
+    }
+    
+    if (progressText) {
+        if (currentQuizQuestion >= quizQuestions.length) {
+            progressText.textContent = 'Quiz Complete!';
+        } else {
+            progressText.textContent = `Question ${currentQuizQuestion + 1} of ${quizQuestions.length}`;
+        }
+    }
+}
+
+/**
+ * Update quiz statistics display
+ */
+function updateQuizStats() {
+    const correctAnswersSpan = document.getElementById('correctAnswers');
+    if (correctAnswersSpan) {
+        correctAnswersSpan.textContent = quizScore;
+    }
+}
+
+/**
+ * Display quiz completion results
+ */
+function showQuizResults() {
+    isQuizActive = false;
+    const quizContent = document.getElementById('quizContent');
+    const certificateSection = document.getElementById('certificateSection');
+    const progressFill = document.getElementById('progressFill');
+    
+    if (progressFill) {
+        progressFill.style.width = '100%';
+    }
+    
+    updateQuizProgress();
+    
+    const percentage = Math.round((quizScore / quizQuestions.length) * 100);
+    let performanceMessage = '';
+    let performanceClass = '';
+    
+    if (percentage >= 90) {
+        performanceMessage = 'Outstanding! You have excellent cybersecurity knowledge.';
+        performanceClass = 'excellent';
+    } else if (percentage >= 80) {
+        performanceMessage = 'Great job! You have strong cybersecurity awareness.';
+        performanceClass = 'good';
+    } else if (percentage >= 70) {
+        performanceMessage = 'Good work! Consider reviewing some topics to improve further.';
+        performanceClass = 'fair';
+    } else {
+        performanceMessage = 'Keep learning! Review the educational materials to strengthen your knowledge.';
+        performanceClass = 'needs-improvement';
+    }
+    
+    if (quizContent) {
+        quizContent.innerHTML = `
+            <div class="quiz-results">
+                <h3><i class="fas fa-trophy" aria-hidden="true"></i> Quiz Complete!</h3>
+                <div class="score-display">${quizScore}/${quizQuestions.length}</div>
+                <div class="score-message ${performanceClass}">${percentage}% - ${performanceMessage}</div>
+                
+                <div class="performance-breakdown">
+                    <div class="performance-item">
+                        <div class="performance-value">${quizScore}</div>
+                        <div class="performance-label">Correct</div>
+                    </div>
+                    <div class="performance-item">
+                        <div class="performance-value">${quizQuestions.length - quizScore}</div>
+                        <div class="performance-label">Incorrect</div>
+                    </div>
+                    <div class="performance-item">
+                        <div class="performance-value">${percentage}%</div>
+                        <div class="performance-label">Score</div>
+                    </div>
+                    <div class="performance-item">
+                        <div class="performance-value">${formatDate(new Date()).split(',')[0]}</div>
+                        <div class="performance-label">Date</div>
+                    </div>
+                </div>
+                
+                <button class="cta-button primary" onclick="startQuiz()">
+                    <i class="fas fa-redo" aria-hidden="true"></i>
+                    Retake Quiz
+                </button>
+            </div>
+        `;
+    }
+    
+    if (certificateSection) {
+        certificateSection.style.display = 'block';
+    }
+    
+    showToast(`Quiz completed! You scored ${percentage}%`, 'success');
+}
+
+/**
+ * Generate and download certificate
+ */
+function generateCertificate() {
+    const userNameInput = document.getElementById('userName');
+    if (!userNameInput || !userNameInput.value.trim()) {
+        showToast('Please enter your name to generate certificate', 'error');
+        userNameInput?.focus();
+        return;
+    }
+    
+    const userName = userNameInput.value.trim();
+    const percentage = Math.round((quizScore / quizQuestions.length) * 100);
+    const canvas = document.getElementById('certificateCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Certificate design
+    ctx.fillStyle = '#0a0e1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Border
+    ctx.strokeStyle = '#14b8a6';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+    
+    // Header
+    ctx.fillStyle = '#14b8a6';
+    ctx.font = 'bold 32px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('CERTIFICATE OF COMPLETION', canvas.width / 2, 100);
+    
+    ctx.fillStyle = '#06ffa5';
+    ctx.font = 'bold 28px Inter';
+    ctx.fillText('Cybersecurity Training Program', canvas.width / 2, 140);
+    
+    // Recipient
+    ctx.fillStyle = '#f9fafb';
+    ctx.font = '24px Inter';
+    ctx.fillText('This certifies that', canvas.width / 2, 200);
+    
+    ctx.fillStyle = '#14b8a6';
+    ctx.font = 'bold 36px Inter';
+    ctx.fillText(userName, canvas.width / 2, 250);
+    
+    // Achievement
+    ctx.fillStyle = '#f9fafb';
+    ctx.font = '20px Inter';
+    ctx.fillText('has successfully completed the', canvas.width / 2, 300);
+    ctx.fillText('Phishing Detection and Email Security course', canvas.width / 2, 330);
+    
+    ctx.fillStyle = '#06ffa5';
+    ctx.font = 'bold 28px Inter';
+    ctx.fillText(`Score: ${percentage}%`, canvas.width / 2, 380);
+    
+    // Date and signature
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '16px Inter';
+    ctx.fillText(`Completed on: ${formatDate(new Date()).split(',')[0]}`, canvas.width / 2, 450);
+    ctx.fillText('CyberSecure Learning Platform', canvas.width / 2, 480);
+    ctx.fillText('Group 3 BScIT Students - Intern ID: 226', canvas.width / 2, 500);
+    
+    // Logo/Icon
+    ctx.fillStyle = '#14b8a6';
+    ctx.font = 'bold 60px FontAwesome';
+    ctx.fillText('🛡️', canvas.width / 2, 550);
+    
+    // Download certificate
+    canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `cybersecurity-certificate-${userName.replace(/\s+/g, '-').toLowerCase()}.png`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showToast('Certificate downloaded successfully!', 'success');
+    });
+}
+
+/**
+ * Export quiz results as JSON
+ */
+function exportQuizResultsJSON() {
+    if (!quizAnswers.length) {
+        showToast('No quiz results to export', 'error');
+        return;
+    }
+    
+    const results = {
+        completedDate: new Date().toISOString(),
+        score: quizScore,
+        totalQuestions: quizQuestions.length,
+        percentage: Math.round((quizScore / quizQuestions.length) * 100),
+        answers: quizAnswers,
+        metadata: {
+            platform: 'CyberSecure Learning Platform',
+            version: '1.0',
+            exportFormat: 'JSON'
+        }
+    };
+    
+    const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `quiz-results-${new Date().toISOString().split('T')[0]}.json`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('Quiz results exported as JSON', 'success');
+}
+
+/**
+ * Export quiz results as text
+ */
+function exportQuizResultsText() {
+    if (!quizAnswers.length) {
+        showToast('No quiz results to export', 'error');
+        return;
+    }
+    
+    const percentage = Math.round((quizScore / quizQuestions.length) * 100);
+    let textContent = `CYBERSECURITY QUIZ RESULTS
+============================
+
+Date: ${formatDate(new Date())}
+Score: ${quizScore}/${quizQuestions.length} (${percentage}%)
+Platform: CyberSecure Learning Platform
+
+DETAILED RESULTS:
+`;
+    
+    quizAnswers.forEach((answer, index) => {
+        textContent += `
+${index + 1}. ${answer.question}
+   Your Answer: ${answer.selectedAnswer}
+   Correct Answer: ${answer.correctAnswer}
+   Result: ${answer.isCorrect ? 'CORRECT' : 'INCORRECT'}
+`;
+    });
+    
+    textContent += `
+============================
+Generated by CyberSecure Learning Platform
+Group 3 BScIT Students - Intern ID: 226`;
+    
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `quiz-results-${new Date().toISOString().split('T')[0]}.txt`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('Quiz results exported as text file', 'success');
+}
+
+/**
+ * Initialize quiz functionality
+ */
+function initQuiz() {
+    const startQuizBtn = document.getElementById('startQuizBtn');
+    const generateCertificateBtn = document.getElementById('generateCertificate');
+    const exportJSONBtn = document.getElementById('exportJSON');
+    const exportTextBtn = document.getElementById('exportText');
+    
+    if (startQuizBtn) {
+        startQuizBtn.addEventListener('click', startQuiz);
+    }
+    
+    if (generateCertificateBtn) {
+        generateCertificateBtn.addEventListener('click', generateCertificate);
+    }
+    
+    if (exportJSONBtn) {
+        exportJSONBtn.addEventListener('click', exportQuizResultsJSON);
+    }
+    
+    if (exportTextBtn) {
+        exportTextBtn.addEventListener('click', exportQuizResultsText);
+    }
+}
+
+// ============================================================================
+// RESOURCES AND EXPORT FUNCTIONALITY
+// ============================================================================
+
+/**
+ * Generate and download cheat sheet
+ */
+function downloadCheatSheet() {
+    const cheatSheetContent = `PHISHING DETECTION CHEAT SHEET
+===============================
+
+🚨 RED FLAGS TO WATCH FOR:
+• Urgent/threatening language
+• Generic greetings ("Dear Customer")
+• Suspicious sender addresses
+• Mismatched URLs/domains
+• Unexpected attachments
+• Poor grammar/spelling
+• Requests for sensitive info
+
+🔍 VERIFICATION STEPS:
+1. Check sender domain carefully
+2. Hover over links (don't click!)
+3. Look for official contact info
+4. Verify through separate channel
+5. Check for SSL certificates
+6. Review email headers
+
+🛡️ PROTECTION MEASURES:
+• Enable 2FA/MFA
+• Keep software updated
+• Use reputable antivirus
+• Regular security training
+• Report suspicious emails
+• Use email filtering
+
+📞 REPORTING CONTACTS:
+CERT-In: incident@cert-in.org.in
+US-CERT: info@us-cert.gov
+Google: phishing@gmail.com
+Microsoft: reportphishing@microsoft.com
+PayPal: spoof@paypal.com
+
+Generated by CyberSecure Learning Platform
+Group 3 BScIT Students - Intern ID: 226`;
+
+    const blob = new Blob([cheatSheetContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'phishing-detection-cheat-sheet.txt';
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('Cheat sheet downloaded!', 'success');
+}
+
+/**
+ * Export lessons as PDF (simplified text version)
+ */
+function exportLessons() {
+    const lessonsContent = `CYBERSECURITY EDUCATION - COMPLETE LESSONS
+=========================================
+
+TABLE OF CONTENTS
+=================
+1. Understanding Phishing Threats
+2. Types of Phishing Attacks
+3. Red Flag Indicators
+4. Email Authentication
+5. Protection Strategies
+6. Reporting Procedures
+
+1. UNDERSTANDING PHISHING THREATS
+=================================
+
+What is Phishing?
+Phishing is a cybercrime where attackers impersonate legitimate organizations to steal sensitive information like passwords, credit card numbers, and personal data through deceptive emails, websites, or messages.
+
+Why It Matters:
+• $12 billion in annual losses globally
+• 1 in 4 people fall victim to phishing
+• 83% of organizations are affected
+• Average cost of $4.91M per breach
+
+Social Impact:
+• Identity theft and fraud
+• Emotional distress for victims
+• Erosion of digital trust
+• Need for cybersecurity education
+
+2. TYPES OF PHISHING ATTACKS
+============================
+
+Email Phishing:
+Mass emails targeting credentials and personal information from a large number of users.
+
+Spear Phishing:
+Targeted attacks on specific individuals using personalized information to appear more legitimate.
+
+Whaling:
+Attacks targeting high-profile executives and decision-makers in organizations.
+
+Smishing (SMS Phishing):
+Phishing attempts delivered via SMS text messages to mobile devices.
+
+Vishing (Voice Phishing):
+Voice-based phishing attacks conducted over phone calls.
+
+3. RED FLAG INDICATORS
+======================
+
+Common Warning Signs:
+• Urgent or threatening language
+• Suspicious sender addresses
+• Generic greetings like "Dear Customer"
+• Unexpected attachments
+• Mismatched URLs and domains
 • Poor grammar and spelling mistakes
-• Requests for sensitive information via email
+• Requests for sensitive information
 
-EMAIL HEADER ANALYSIS:
-• SPF: Validates authorized sending servers
-• DKIM: Ensures message hasn't been tampered with  
-• DMARC: Combines SPF and DKIM for stronger protection
-• Check From vs Return-Path domain matching
-• Verify realistic timestamps
+4. EMAIL AUTHENTICATION
+=======================
 
-PROTECTION TIPS:
-✓ Hover over links to see true destination
-✓ Contact organization directly to verify suspicious emails
-✓ Use two-factor authentication (2FA)
-✓ Keep software and browsers updated
-✓ Report phishing to security team or authorities
+SPF (Sender Policy Framework):
+Verifies that the sending mail server is authorized to send emails for the domain.
 
-REPORTING CHANNELS:
-• Company IT Security Team
-• phishing@fbi.gov
-• US-CERT: https://www.us-cert.gov/report
-• Local Computer Emergency Response Team (CERT)
+DKIM (DomainKeys Identified Mail):
+Uses cryptographic signatures to verify email authenticity and integrity.
 
-Generated by Cybersecurity Education Platform
-Date: ${new Date().toLocaleDateString()}
-            `;
+DMARC (Domain-based Message Authentication):
+Combines SPF and DKIM to provide comprehensive email authentication.
+
+5. PROTECTION STRATEGIES
+========================
+
+Personal Protection:
+• Verify sender identity through separate communication
+• Hover over links to preview URLs
+• Use multi-factor authentication (MFA)
+• Keep software and browsers updated
+• Use reputable antivirus software
+• Participate in regular security training
+
+Organizational Protection:
+• Implement email filtering solutions
+• Conduct regular security awareness training
+• Establish clear reporting procedures
+• Deploy endpoint detection and response
+• Regular security assessments
+
+6. REPORTING PROCEDURES
+=======================
+
+Government Agencies:
+• CERT-In: incident@cert-in.org.in
+• US-CERT: info@us-cert.gov
+• IC3: ic3.gov
+
+Major Platforms:
+• Google: phishing@gmail.com
+• Microsoft: reportphishing@microsoft.com
+• PayPal: spoof@paypal.com
+
+Remember: Report immediately and never provide personal information in response to suspicious requests.
+
+=========================================
+© 2024 CyberSecure Learning Platform
+Group 3 BScIT Students - Intern ID: 226
+=========================================`;
+
+    const blob = new Blob([lessonsContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'cybersecurity-complete-lessons.txt';
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('Lessons exported successfully!', 'success');
+}
+
+/**
+ * Export analyzer results
+ */
+function exportAnalyzerResults() {
+    const resultsContainer = document.getElementById('analyzerResults');
+    if (!resultsContainer || resultsContainer.style.display === 'none') {
+        showToast('No analyzer results to export. Please analyze email headers first.', 'error');
+        return;
+    }
+    
+    // Extract text content from results
+    const resultSections = resultsContainer.querySelectorAll('.result-section');
+    let exportContent = `EMAIL HEADER ANALYSIS RESULTS
+============================
+
+Analysis Date: ${formatDate(new Date())}
+
+`;
+    
+    resultSections.forEach(section => {
+        const title = section.querySelector('h3').textContent;
+        exportContent += `${title}\n${'='.repeat(title.length)}\n\n`;
+        
+        const resultItems = section.querySelectorAll('.result-item');
+        resultItems.forEach(item => {
+            const label = item.querySelector('.result-label')?.textContent || '';
+            const value = item.querySelector('.result-value')?.textContent || 
+                         item.querySelector('.result-status')?.textContent || '';
             
-            downloadTextFile('phishing-cheat-sheet.txt', cheatSheetContent);
-        }
-
-        function downloadCertificate() {
-            // Create a downloadable certificate as HTML
-            const certificateDiv = document.getElementById('certificate');
-            if (!certificateDiv) return;
-            
-            const certificateHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cybersecurity Quiz Certificate</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .certificate { 
-            border: 3px solid #14b8a6; 
-            padding: 40px; 
-            text-align: center; 
-            background: #f8f9fa;
-        }
-        h1 { color: #14b8a6; }
-        .score { font-size: 1.5em; font-weight: bold; color: #3b82f6; }
-    </style>
-</head>
-<body>
-    <div class="certificate">
-        ${certificateDiv.innerHTML}
-    </div>
-</body>
-</html>
-            `;
-            
-            downloadTextFile('cybersecurity-certificate.html', certificateHtml);
-        }
-
-        function exportQuizResults() {
-            if (quizAnswers.length === 0) {
-                alert('Please complete the quiz first to export results.');
-                return;
+            if (label && value) {
+                exportContent += `${label} ${value}\n`;
+            } else if (label) {
+                exportContent += `• ${label}\n`;
             }
-            
-            const results = {
-                completedDate: new Date().toISOString(),
-                totalQuestions: quizQuestions.length,
-                correctAnswers: quizScore,
-                percentage: Math.round((quizScore / quizQuestions.length) * 100),
-                questions: quizAnswers.map(answer => ({
-                    questionNumber: answer.question + 1,
-                    question: quizQuestions[answer.question].question,
-                    userAnswer: quizQuestions[answer.question].options[answer.userAnswer],
-                    correctAnswer: quizQuestions[answer.question].options[quizQuestions[answer.question].correct],
-                    isCorrect: answer.correct,
-                    explanation: quizQuestions[answer.question].explanation
-                }))
-            };
-            
-            downloadTextFile('quiz-results.json', JSON.stringify(results, null, 2));
-        }
+        });
+        
+        exportContent += '\n';
+    });
+    
+    exportContent += `
+============================
+Generated by CyberSecure Learning Platform
+Email Header Analyzer Tool
+Group 3 BScIT Students - Intern ID: 226
+============================`;
+    
+    const blob = new Blob([exportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `email-analysis-results-${new Date().toISOString().split('T')[0]}.txt`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('Analyzer results exported!', 'success');
+}
 
-        function printPage() {
-            // Hide interactive elements for printing
-            const elementsToHide = document.querySelectorAll('.btn, .phishing-controls, nav');
-            elementsToHide.forEach(el => el.style.display = 'none');
-            
-            window.print();
-            
-            // Restore interactive elements after printing
-            setTimeout(() => {
-                elementsToHide.forEach(el => el.style.display = '');
-            }, 1000);
-        }
+/**
+ * Initialize resources functionality
+ */
+function initResources() {
+    const downloadCheatSheetBtn = document.getElementById('downloadCheatSheet');
+    const exportLessonsBtn = document.getElementById('exportLessons');
+    const exportAnalyzerBtn = document.getElementById('exportAnalyzer');
+    
+    if (downloadCheatSheetBtn) {
+        downloadCheatSheetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            downloadCheatSheet();
+        });
+    }
+    
+    if (exportLessonsBtn) {
+        exportLessonsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportLessons();
+        });
+    }
+    
+    if (exportAnalyzerBtn) {
+        exportAnalyzerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportAnalyzerResults();
+        });
+    }
+}
 
-        function downloadTextFile(filename, content) {
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
+// ============================================================================
+// CONTACT FORM FUNCTIONALITY
+// ============================================================================
 
-        // Make functions available globally for onclick handlers
-        window.submitQuizAnswer = submitQuizAnswer;
-        window.downloadCheatSheet = downloadCheatSheet;
-        window.downloadCertificate = downloadCertificate;
-        window.exportQuizResults = exportQuizResults;
-        window.printPage = printPage;
+/**
+ * Handle contact form submission
+ * @param {Event} e - Form submission event
+ */
+function handleContactSubmission(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const message = formData.get('message');
+    
+    // Simple validation
+    if (!name || !email || !message) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    // Simulate form submission (in a real app, this would send to a server)
+    const submitButton = e.target.querySelector('.submit-button');
+    const originalText = submitButton.innerHTML;
+    
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    submitButton.disabled = true;
+    
+    setTimeout(() => {
+        showToast('Thank you for your message! We\'ll get back to you soon.', 'success');
+        e.target.reset();
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    }, 2000);
+}
+
+/**
+ * Initialize contact form
+ */
+function initContactForm() {
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactSubmission);
+    }
+}
+
+// ============================================================================
+// ACCESSIBILITY ENHANCEMENTS
+// ============================================================================
+
+/**
+ * Handle keyboard navigation for interactive elements
+ */
+function initKeyboardNavigation() {
+    // Handle Enter key on buttons that aren't actually buttons
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            const target = e.target;
+            
+            // Handle quiz answer options
+            if (target.classList.contains('answer-option') && !target.classList.contains('correct') && !target.classList.contains('incorrect')) {
+                e.preventDefault();
+                const index = parseInt(target.dataset.index);
+                if (!isNaN(index)) {
+                    selectQuizAnswer(index);
+                }
+            }
+        }
+    });
+    
+    // Improve focus visibility
+    document.addEventListener('focusin', (e) => {
+        if (e.target.matches('button, input, textarea, select, a, [tabindex]')) {
+            e.target.classList.add('keyboard-focused');
+        }
+    });
+    
+    document.addEventListener('focusout', (e) => {
+        e.target.classList.remove('keyboard-focused');
+    });
+}
+
+/**
+ * Announce important updates to screen readers
+ * @param {string} message - Message to announce
+ */
+function announceToScreenReader(message) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    setTimeout(() => {
+        document.body.removeChild(announcement);
+    }, 1000);
+}
+
+// ============================================================================
+// MAIN INITIALIZATION
+// ============================================================================
+
+/**
+ * Initialize all functionality when DOM is loaded
+ */
+function initializeApp() {
+    console.log('Initializing CyberSecure Learning Platform...');
+    
+    try {
+        // Initialize core functionality
+        initNavigation();
+        initSimulation();
+        initEmailAnalyzer();
+        initQuiz();
+        initResources();
+        initContactForm();
+        initKeyboardNavigation();
+        
+        // Add smooth scrolling for all internal links
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                scrollToSection(targetId);
+            });
+        });
+        
+        // Initialize scroll-to-top functionality
+        let scrollToTopBtn = document.createElement('button');
+        scrollToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+        scrollToTopBtn.className = 'scroll-to-top';
+        scrollToTopBtn.setAttribute('aria-label', 'Scroll to top');
+        scrollToTopBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-teal);
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: var(--transition-smooth);
+        `;
+        
+        document.body.appendChild(scrollToTopBtn);
+        
+        // Show/hide scroll to top button
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.style.display = 'block';
+            } else {
+                scrollToTopBtn.style.display = 'none';
+            }
+        });
+        
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        console.log('CyberSecure Learning Platform initialized successfully!');
+        showToast('Welcome to CyberSecure Learning Platform!', 'success');
+        
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        showToast('There was an error loading the application. Please refresh the page.', 'error');
+    }
+}
+
+// ============================================================================
+// EVENT LISTENERS AND APP STARTUP
+// ============================================================================
+
+// Initialize app when DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
+
+// Handle window resize for responsive adjustments
+window.addEventListener('resize', () => {
+    // Close mobile menu on resize to desktop
+    if (window.innerWidth > 768) {
+        const navMenu = document.querySelector('.nav-menu');
+        const navToggle = document.querySelector('.nav-toggle');
+        if (navMenu && navToggle) {
+            navMenu.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+        }
+    }
+});
+
+// Handle visibility change to pause animations when tab is not visible
+document.addEventListener('visibilitychange', () => {
+    const animations = document.querySelectorAll('[style*="animation"]');
+    animations.forEach(el => {
+        if (document.hidden) {
+            el.style.animationPlayState = 'paused';
+        } else {
+            el.style.animationPlayState = 'running';
+        }
+    });
+});
+
+// Export functions for global access (if needed)
+window.CyberSecurePlatform = {
+    scrollToSection,
+    showToast,
+    startQuiz,
+    restartSimulation,
+    analyzeEmailHeaders,
+    generateCertificate,
+    downloadCheatSheet,
+    exportLessons,
+    exportAnalyzerResults
+};
