@@ -3,380 +3,532 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cybersecurity Education | Phishing Simulation & Email Header Analysis</title>
+    <meta name="description" content="Professional cybersecurity learning platform for phishing detection and email security analysis">
+    <title>CyberSecure Learning Platform - Phishing & Email Security</title>
     
-    <!-- External resources (minimal dependencies) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- External Resources -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="nav" role="navigation" aria-label="Main navigation">
-        <div class="container nav-container">
-            <a href="#home" class="nav-brand">
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <div class="nav-brand">
                 <i class="fas fa-shield-alt" aria-hidden="true"></i>
-                Cyber Education
-            </a>
-            <ul class="nav-links">
-                <li><a href="#about">About</a></li>
-                <li><a href="#overview">Overview</a></li>
-                <li><a href="#learn">Learn</a></li>
-                <li><a href="#demo">Demo</a></li>
-                <li><a href="#analyzer">Analyzer</a></li>
-                <li><a href="#quiz">Quiz</a></li>
-                <li><a href="#resources">Resources</a></li>
-            
+                <span>CyberSecure</span>
+            </div>
+            <ul class="nav-menu" role="menubar">
+                <li role="none"><a href="#overview" role="menuitem">Overview</a></li>
+                <li role="none"><a href="#learn" role="menuitem">Learn</a></li>
+                <li role="none"><a href="#simulation" role="menuitem">Simulation</a></li>
+                <li role="none"><a href="#analyzer" role="menuitem">Analyzer</a></li>
+                <li role="none"><a href="#quiz" role="menuitem">Quiz</a></li>
+                <li role="none"><a href="#resources" role="menuitem">Resources</a></li>
             </ul>
+            <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </nav>
 
-    
     <!-- Hero Section -->
-    <section id="home" class="hero section">
+    <section class="hero" id="home">
+        <div class="hero-background">
+            <div class="cyber-grid"></div>
+            <div class="floating-particles"></div>
+        </div>
         <div class="container">
-            <h1 class="hero-title">Phishing Simulation & Email Header Analysis</h1>
-            <p class="hero-subtitle">
-                Learn to identify phishing attacks and analyze email security through interactive simulations and real-world examples
-            </p>
-            <!-- Edit group info here -->
-            <div class="credit-line">
-                <i class="fas fa-users" aria-hidden="true"></i>
-                Group: Made by 3 BScIT Students 
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Phishing Simulation & 
+                    <span class="gradient-text">Email Header Analysis</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Master cybersecurity fundamentals through interactive learning, 
+                    real-world simulations, and comprehensive email security analysis
+                </p>
+ 
+                <div class="hero-actions">
+                    <button class="cta-button primary" onclick="scrollToSection('learn')">
+                        <i class="fas fa-play" aria-hidden="true"></i>
+                        Start Learning
+                    </button>
+                    <button class="cta-button secondary" onclick="scrollToSection('simulation')">
+                        <i class="fas fa-bug" aria-hidden="true"></i>
+                        Try Simulation
+                    </button>
+                </div>
+                <div class="group-credit">
+                    <p>A Educational Project about  Phishing Simulation & Email Header Analysis</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- About/Contact -->
-    <section id="about" class="section">
-        <div class="container">
-            <h2 class="fade-in"><i class="fas fa-users" aria-hidden="true"></i> About This Project</h2>
-            
-            <div class="grid grid-2">
-                <div class="card fade-in">
-                    <h3>Learning Outcomes Demonstrated</h3>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li>✅ <strong>Interactive Simulation:</strong> Real-world phishing examples with feedback</li>
-                        <li>✅ <strong>Technical Analysis:</strong> Email header parsing and security validation</li>
-                        <li>✅ <strong>Assessment Tools:</strong> Comprehensive quiz with explanations</li>
-                        <li>✅ <strong>Accessible Design:</strong> WCAG compliant, keyboard navigation, ARIA labels</li>
-                        <li>✅ <strong>Responsive UI:</strong> Mobile-first design with professional aesthetics</li>
-                        <li>✅ <strong>Educational Content:</strong> Accurate, up-to-date cybersecurity information</li>
-                    </ul>
-                </div>
-                
-                <div class="card fade-in">
-                    <h3>Project Team</h3>
-                    <!-- Edit group info here -->
-                    <p><strong>Group:</strong> 3 Bachelor of Science in Information Technology Students</p>
-                    <!-- Edit intern ID here -->
-                    <p><strong>Intern ID:</strong> 129, 226, 227</p>
-                    <p><strong>Course:</strong> Cybersecurity </p>
-                    <p><strong>Institution:</strong>DIGISURAKSHA PARHARI FOUNDATION</p>
-                    
-                    <h4 style="margin-top: var(--space-md);">Contact & Reporting</h4>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li>🚨 <strong>CERT-IN (India):</strong> <a href="mailto:incident@cert-in.org.in" style="color: var(--accent-teal);">incident@cert-in.org.in</a></li>
-                        <li>📧 <strong>Microsoft:</strong> <a href="mailto:phish@office365.microsoft.com" style="color: var(--accent-teal);">phish@office365.microsoft.com</a></li>
-                        <li>🌐 <strong>CERT-USA:</strong> <a href="https://www.us-cert.gov/report" target="_blank" rel="noopener" style="color: var(--accent-teal);">Report to US-CERT</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
     <!-- Overview Section -->
-    <section id="overview" class="section">
+    <section class="section" id="overview">
         <div class="container">
-            <div class="card fade-in">
-                <h2><i class="fas fa-info-circle" aria-hidden="true"></i> What is Phishing?</h2>
-                <p>Phishing is a cybercrime where attackers impersonate 
-                    legitimate organizations to steal sensitive information like passwords, 
-                    credit card numbers, or personal data. These attacks often come through emails, messages, 
-  fake websites, or even phone calls. The goal is to steal sensitive data such as login credentials, 
-  bank details, or personal identity information.</p>
+            <h2 class="section-title">Understanding Phishing Threats</h2>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <div class="card-header">
+                        <i class="fas fa-fish" aria-hidden="true"></i>
+                        <h3>What is Phishing?</h3>
+                    </div>
+                    <p>Phishing is a cybercrime where attackers impersonate legitimate organizations to steal sensitive information like passwords, credit card numbers, and personal data through deceptive emails, websites, or messages.</p>
+                </div>
                 
-                <div class="grid grid-2">
-                    <div>
-                        <h3><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i> Why It Matters</h3>
-                        <ul style="list-style: none; padding-left: 0;">
-                            <li>📊 <strong>95% of data breaches</strong> involve successful phishing attacks</li>
-                            <li>💰 <strong>$4.91 million</strong> average cost per data breach in 2023</li>
-                            <li>⏱️ <strong>Every 39 seconds</strong> a cyber attack occurs globally</li>
-                            <li>🎯 <strong>1 in 4 employees</strong> will click on phishing links</li>
-                            <li>🛡️ Phishing bypasses even advanced security systems, making <strong>human awareness</strong> critical.</li>
-                        </ul>
+                <div class="overview-card">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                        <h3>Why It Matters</h3>
                     </div>
-                    
-                    <div>
-                        <h3><i class="fas fa-globe" style="color: var(--accent-teal);"></i> Social Impact</h3>
-                        <ul style="list-style: none; padding-left: 0;">
-                            <li>🏥 <strong>Healthcare disruption:</strong> Patient data theft, service outages</li>
-                            <li>🏫 <strong>Education targets:</strong> Student records, research data at risk</li>
-                            <li>👥 <strong>Personal consequences:</strong> Identity theft, financial loss</li>
-                            <li>🏢 <strong>Business impact:</strong> Reputation damage, legal liability</li>
-                            <li>🌍 <strong>Community risk:</strong> Compromised systems can spread malware across networks.</li>
-                        </ul>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-dollar-sign" aria-hidden="true"></i> $12 billion annual losses globally</li>
+                        <li><i class="fas fa-users" aria-hidden="true"></i> 1 in 4 people fall victim to phishing</li>
+                        <li><i class="fas fa-building" aria-hidden="true"></i> 83% of organizations affected</li>
+                        <li><i class="fas fa-clock" aria-hidden="true"></i> Average cost: $4.91M per breach</li>
+                    </ul>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <i class="fas fa-globe" aria-hidden="true"></i>
+                        <h3>Social Impact</h3>
                     </div>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-identity-card" aria-hidden="true"></i> Identity theft and fraud</li>
+                        <li><i class="fas fa-heart-broken" aria-hidden="true"></i> Emotional distress for victims</li>
+                        <li><i class="fas fa-balance-scale" aria-hidden="true"></i> Erosion of digital trust</li>
+                        <li><i class="fas fa-shield-alt" aria-hidden="true"></i> Need for cybersecurity education</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Learn Section -->
-    <section id="learn" class="section">
+    <section class="section alt-bg" id="learn">
         <div class="container">
-            <h2 class="fade-in"><i class="fas fa-graduation-cap" aria-hidden="true"></i> Learn the Fundamentals</h2>
+            <h2 class="section-title">Master Phishing Detection</h2>
             
-            <div class="grid grid-3">
-                <div class="card fade-in">
-                    <h3><i class="fas fa-fish" style="color: var(--accent-teal);"></i> Types of Phishing</h3>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li>📧 <strong>Email Phishing:</strong> Mass emails to steal credentials</li>
-                        <li>🎯 <strong>Spear Phishing:</strong> Targeted attacks on specific individuals</li>
-                        <li>🐋 <strong>Whaling:</strong> Targeting high-profile executives</li>
-                        <li>📱 <strong>Smishing:</strong> Phishing via SMS/text messages</li>
-                        <li>📞 <strong>Vishing:</strong> Voice/phone-based phishing attacks</li>
-                    </ul>
-                </div>
-                
-                <div class="card fade-in">
-                    <h3><i class="fas fa-search" style="color: var(--warning);"></i> Red Flags to Watch</h3>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li>⚡ <strong>Urgency:</strong> "Act now or lose access!"</li>
-                        <li>🔤 <strong>Poor grammar:</strong> Spelling/grammar mistakes</li>
-                        <li>🔗 <strong>Suspicious links:</strong> Hover to reveal true destination</li>
-                        <li>📎 <strong>Unexpected attachments:</strong> Especially .exe, .zip files</li>
-                        <li>👤 <strong>Generic greetings:</strong> "Dear Customer" instead of your name</li>
-                    </ul>
-                </div>
-                
-                <div class="card fade-in">
-                    <h3><i class="fas fa-shield" style="color: var(--success);"></i> Prevention Tips</h3>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li>✅ <strong>Verify sender:</strong> Contact organization directly</li>
-                        <li>🔐 <strong>Use 2FA:</strong> Enable two-factor authentication</li>
-                        <li>🔄 <strong>Keep updated:</strong> Update software regularly</li>
-                        <li>📚 <strong>Security training:</strong> Stay informed about new threats</li>
-                        <li>🛡️ <strong>Email filters:</strong> Use spam/phishing filters</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card fade-in">
-                <h3><i class="fas fa-shield-alt" style="color: var(--success);"></i> Email Security Basics</h3>
-                <div class="grid grid-2">
-                    <div>
-                        <h4>SPF (Sender Policy Framework)</h4>
-                        <p>Validates that emails are sent from authorized servers for the domain.</p>
-                        <code>v=spf1 include:_spf.example.com ~all</code>
-                    </div>
-                    <div>
-                        <h4>DKIM (DomainKeys Identified Mail)</h4>
-                        <p>Uses cryptographic signatures to verify email hasn't been tampered with.</p>
-                        <code>DKIM-Signature: v=1; a=rsa-sha256; d=example.com...</code>
+            <div class="learn-grid">
+                <div class="learn-card">
+                    <h3><i class="fas fa-list-alt" aria-hidden="true"></i> Common Phishing Types</h3>
+                    <div class="phishing-types">
+                        <div class="type-item">
+                            <strong>Email Phishing:</strong> Mass emails targeting credentials
+                        </div>
+                        <div class="type-item">
+                            <strong>Spear Phishing:</strong> Targeted attacks on specific individuals
+                        </div>
+                        <div class="type-item">
+                            <strong>Whaling:</strong> Attacks targeting high-profile executives
+                        </div>
+                        <div class="type-item">
+                            <strong>Smishing:</strong> Phishing via SMS text messages
+                        </div>
+                        <div class="type-item">
+                            <strong>Vishing:</strong> Voice-based phishing phone calls
+                        </div>
                     </div>
                 </div>
-                <div style="margin-top: var(--space-md);">
-                    <h4>DMARC (Domain-based Message Authentication)</h4>
-                    <p>Combines SPF and DKIM to provide instructions for handling failed authentication.</p>
-                    <code>v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com</code>
+
+                <div class="learn-card">
+                    <h3><i class="fas fa-search" aria-hidden="true"></i> Red Flag Indicators</h3>
+                    <ul class="indicator-list">
+                        <li><span class="indicator">Urgent/threatening language</span></li>
+                        <li><span class="indicator">Suspicious sender addresses</span></li>
+                        <li><span class="indicator">Generic greetings ("Dear Customer")</span></li>
+                        <li><span class="indicator">Unexpected attachments</span></li>
+                        <li><span class="indicator">Mismatched URLs/domains</span></li>
+                        <li><span class="indicator">Poor grammar/spelling</span></li>
+                        <li><span class="indicator">Requests for sensitive information</span></li>
+                    </ul>
+                </div>
+
+                <div class="learn-card">
+                    <h3><i class="fas fa-shield-alt" aria-hidden="true"></i> Prevention Tips</h3>
+                    <ul class="prevention-list">
+                        <li>Verify sender identity through separate communication</li>
+                        <li>Hover over links to preview destination URLs</li>
+                        <li>Use multi-factor authentication (MFA)</li>
+                        <li>Keep software and browsers updated</li>
+                        <li>Use reputable antivirus software</li>
+                        <li>Regular security awareness training</li>
+                        <li>Report suspicious emails immediately</li>
+                    </ul>
                 </div>
             </div>
-            
-            <div class="card fade-in">
-                <h3><i class="fas fa-code" style="color: var(--accent-blue);"></i> Sample Suspicious Email Header</h3>
-                <p>Here's what a suspicious email header might look like:</p>
-                <pre><code>From: security@paypaI.com (note the capital 'i' instead of 'l')
-Reply-To: noreply@suspicious-domain.com
-Return-Path: &lt;bounce@malicious-server.net&gt;
-Received: from unknown-server.xyz ([192.168.1.100])
-Subject: URGENT: Verify Your Account Now!
-Date: Thu, 1 Jan 2024 25:99:99 +0000 (invalid timestamp)</code></pre>
-                <p><strong>Red flags:</strong> Domain spoofing, mismatched reply-to, suspicious server, impossible timestamp</p>
+
+            <div class="email-header-example">
+                <h3><i class="fas fa-code" aria-hidden="true"></i> Sample Email Header</h3>
+                <pre class="code-block"><code>Return-Path: &lt;support@paypal-security.com&gt;
+Delivered-To: user@example.com
+Received: from mail.suspicious-server.net (unknown [192.168.1.100])
+    by mx.example.com with ESMTP id abc123
+    for &lt;user@example.com&gt;; Mon, 15 Jan 2024 10:30:00 -0500
+Message-ID: &lt;fake123@suspicious-server.net&gt;
+Date: Mon, 15 Jan 2024 15:30:00 +0000
+From: PayPal Security &lt;support@paypal-security.com&gt;
+To: user@example.com
+Subject: Urgent: Account Verification Required
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8</code></pre>
             </div>
-            
-            <div class="card fade-in">
-                <h3><i class="fas fa-flag" style="color: var(--error);"></i> How to Report Phishing</h3>
-                <ol style="padding-left: var(--space-md);">
-                    <li><strong>Don't click anything</strong> in the suspicious email</li>
-                    <li><strong>Forward the email</strong> to your IT security team</li>
-                    <li><strong>Report to authorities:</strong> Forward to phishing@fbi.gov or your local CERT</li>
-                    <li><strong>Mark as spam/phishing</strong> in your email client</li>
-                    <li><strong>Delete the email</strong> after reporting</li>
-                    <li><strong>Inform colleagues</strong> if it's a targeted company attack</li>
-                </ol>
+
+            <div class="reporting-section">
+                <h3><i class="fas fa-flag" aria-hidden="true"></i> How to Report Phishing</h3>
+                <div class="reporting-grid">
+                    <div class="reporting-card">
+                        <h4>Government Agencies</h4>
+                        <ul>
+                            <li><strong>CERT-In:</strong> incident@cert-in.org.in</li>
+                            <li><strong>US-CERT:</strong> info@us-cert.gov</li>
+                            <li><strong>IC3:</strong> ic3.gov</li>
+                        </ul>
+                    </div>
+                    <div class="reporting-card">
+                        <h4>Major Platforms</h4>
+                        <ul>
+                            <li><strong>Google:</strong> phishing@gmail.com</li>
+                            <li><strong>Microsoft:</strong> reportphishing@microsoft.com</li>
+                            <li><strong>PayPal:</strong> spoof@paypal.com</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Live Demo - Phishing Simulation -->
-    <section id="demo" class="section">
+    <!-- Phishing Simulation Section -->
+    <section class="section" id="simulation">
         <div class="container">
-            <h2 class="fade-in"><i class="fas fa-play-circle" aria-hidden="true"></i> Live Demo - Phishing Simulation</h2>
+            <h2 class="section-title">Phishing Email Simulation</h2>
+            <p class="section-description">Test your phishing detection skills with these realistic email samples</p>
             
-            <div class="card fade-in">
-                <p>Test your skills with realistic phishing examples. Analyze each email and decide if it's legitimate or a phishing attempt.</p>
-                
-                <div id="phishing-simulation">
-                    <!-- Simulation content will be populated by JavaScript -->
+            <div class="simulation-container">
+                <div class="email-display" id="emailDisplay">
+                    <!-- Email content will be populated by JavaScript -->
                 </div>
                 
-                <div class="phishing-controls">
-                    <button type="button" class="btn btn-danger" id="mark-phish">
+                <div class="simulation-controls">
+                    <button class="sim-button danger" id="markPhishing">
                         <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
                         Mark as Phishing
                     </button>
-                    <button type="button" class="btn btn-success" id="mark-safe">
+                    <button class="sim-button safe" id="markSafe">
                         <i class="fas fa-check-circle" aria-hidden="true"></i>
                         Mark as Safe
                     </button>
-                    <button type="button" class="btn btn-secondary" id="next-email">
-                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
-                        Next Email
-                    </button>
                 </div>
                 
-                <div id="phishing-feedback" class="phishing-feedback" role="alert" aria-live="polite">
+                <div class="feedback-area" id="feedbackArea" style="display: none;">
                     <!-- Feedback will be populated by JavaScript -->
+                </div>
+                
+                <button class="next-button" id="nextEmail" style="display: none;">
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    Next Email
+                </button>
+                
+                <div class="simulation-stats" id="simulationStats">
+                    <div class="stat">
+                        <span class="stat-label">Email:</span>
+                        <span class="stat-value" id="currentEmail">1</span>
+                        <span class="stat-total">/ 3</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Correct:</span>
+                        <span class="stat-value" id="correctCount">0</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Email Header Analyzer -->
-    <section id="analyzer" class="section">
+    <!-- Email Header Analyzer Section -->
+    <section class="section alt-bg" id="analyzer">
         <div class="container">
-            <h2 class="fade-in"><i class="fas fa-search" aria-hidden="true"></i> Email Header Analyzer</h2>
+            <h2 class="section-title">Email Header Analyzer</h2>
+            <p class="section-description">Paste raw email headers below for comprehensive security analysis</p>
             
-            <div class="card fade-in">
-                <p>Paste raw email headers below to analyze their security and authenticity.</p>
-                
-                <div class="form-group">
-                    <label for="email-headers" class="form-label">Email Headers</label>
+            <div class="analyzer-container">
+                <div class="analyzer-input">
+                    <label for="headerInput" class="input-label">Raw Email Headers:</label>
                     <textarea 
-                        id="email-headers" 
-                        class="form-textarea" 
-                        placeholder="Paste raw email headers here..."
-                        rows="10"
-                        aria-describedby="headers-help"
+                        id="headerInput" 
+                        placeholder="Paste your email headers here..."
+                        aria-describedby="headerInputHelp"
                     ></textarea>
-                    <small id="headers-help" style="color: var(--text-secondary);">
-                        In most email clients, you can find raw headers in "View Source" or "Show Original" options.
-                    </small>
+                    <div id="headerInputHelp" class="input-help">
+                        Paste the complete email headers including all "Received:", "From:", "To:", "Subject:" fields
+                    </div>
+                    
+                    <div class="analyzer-actions">
+                        <button class="analyze-button" id="analyzeBtn">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            Analyze Headers
+                        </button>
+                        <div class="example-buttons">
+                            <button class="example-btn good" id="loadGoodExample">
+                                Load Good Example
+                            </button>
+                            <button class="example-btn suspicious" id="loadSuspiciousExample">
+                                Load Suspicious Example
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
-                <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-md);">
-                    <button type="button" class="btn btn-primary" id="analyze-headers">
-                        <i class="fas fa-play" aria-hidden="true"></i>
-                        Analyze Headers
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-small" id="load-sample-good">
-                        Load Good Example
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-small" id="load-sample-bad">
-                        Load Suspicious Example
-                    </button>
+                <div class="analyzer-results" id="analyzerResults" style="display: none;">
+                    <!-- Results will be populated by JavaScript -->
                 </div>
-                
-                <div id="analyzer-results" class="analyzer-result" aria-live="polite">
-                    <!-- Analysis results will be populated by JavaScript -->
+            </div>
+            
+            <div class="spf-diagram">
+                <h3><i class="fas fa-sitemap" aria-hidden="true"></i> Email Authentication Flow</h3>
+                <div class="diagram-container">
+                    <div class="flow-step">
+                        <div class="step-icon spf"><i class="fas fa-envelope"></i></div>
+                        <h4>SPF Check</h4>
+                        <p>Verifies sender IP against authorized senders</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="step-icon dkim"><i class="fas fa-key"></i></div>
+                        <h4>DKIM Signature</h4>
+                        <p>Validates email integrity with cryptographic signature</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="step-icon dmarc"><i class="fas fa-shield-alt"></i></div>
+                        <h4>DMARC Policy</h4>
+                        <p>Enforces authentication policy and reporting</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Quiz Section -->
-    <section id="quiz" class="section">
+    <section class="section" id="quiz">
         <div class="container">
-            <h2 class="fade-in"><i class="fas fa-question-circle" aria-hidden="true"></i> Knowledge Quiz</h2>
+            <h2 class="section-title">Cybersecurity Knowledge Quiz</h2>
+            <p class="section-description">Test your understanding with our comprehensive 10-question quiz</p>
             
-            <div class="card fade-in">
-                <p>Test your cybersecurity knowledge with this interactive quiz.</p>
-                
-                <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
-                    <div class="progress-fill" id="quiz-progress"></div>
-                </div>
-                <p id="quiz-counter" style="text-align: center; margin-bottom: var(--space-lg);">Question 1 of 10</p>
-                
-                <div id="quiz-container">
-                    <!-- Quiz questions will be populated by JavaScript -->
+            <div class="quiz-container">
+                <div class="quiz-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">Question 1 of 10</span>
                 </div>
                 
-                <div id="quiz-results" style="display: none; text-align: center;">
-                    <!-- Quiz results will be populated by JavaScript -->
-                </div>
-                
-                <div style="text-align: center; margin-top: var(--space-lg);">
-                    <button type="button" class="btn btn-primary" id="start-quiz">
+                <div class="quiz-content" id="quizContent">
+                    <button class="start-quiz-btn" id="startQuizBtn">
                         <i class="fas fa-play" aria-hidden="true"></i>
                         Start Quiz
                     </button>
-                    <button type="button" class="btn btn-secondary" id="restart-quiz" style="display: none;">
-                        <i class="fas fa-redo" aria-hidden="true"></i>
-                        Restart Quiz
+                </div>
+                
+                <div class="quiz-stats" id="quizStats" style="display: none;">
+                    <div class="stat-item">
+                        <span class="stat-number" id="correctAnswers">0</span>
+                        <span class="stat-label">Correct</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalQuestions">10</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="certificate-section" id="certificateSection" style="display: none;">
+                <h3><i class="fas fa-award" aria-hidden="true"></i> Congratulations!</h3>
+                <p>You've completed the cybersecurity quiz. Generate your completion certificate below:</p>
+                <div class="certificate-form">
+                    <input type="text" id="userName" placeholder="Enter your full name" required>
+                    <button class="certificate-btn" id="generateCertificate">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        Generate Certificate
+                    </button>
+                </div>
+                <div class="export-options">
+                    <button class="export-btn" id="exportJSON">
+                        <i class="fas fa-file-code" aria-hidden="true"></i>
+                        Export Results (JSON)
+                    </button>
+                    <button class="export-btn" id="exportText">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i>
+                        Export Results (Text)
                     </button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Resources & Tools -->
-    <section id="resources" class="section">
+    <!-- Resources Section -->
+    <section class="section alt-bg" id="resources">
         <div class="container">
-            <h2 class="fade-in"><i class="fas fa-toolbox" aria-hidden="true"></i> Resources & Tools</h2>
+            <h2 class="section-title">Resources & Tools</h2>
             
-            <div class="grid grid-2">
-                <div class="card fade-in">
-                    <h3><i class="fas fa-download" style="color: var(--accent-teal);"></i> Downloads</h3>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li style="margin-bottom: var(--space-xs);">
-                            <a href="#" class="btn btn-small btn-secondary" onclick="downloadCheatSheet()">
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <div class="card-header">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <h3>Downloadable Resources</h3>
+                    </div>
+                    <ul class="resource-list">
+                        <li>
+                            <a href="#" id="downloadCheatSheet" class="resource-link">
                                 <i class="fas fa-file-pdf" aria-hidden="true"></i>
-                                Phishing Identification Cheat Sheet
-                            </a>
-                        </li>
-                        <li style="margin-bottom: var(--space-xs);">
-                            <a href="#" class="btn btn-small btn-secondary" onclick="printPage()">
-                                <i class="fas fa-print" aria-hidden="true"></i>
-                                Print Learning Materials
+                                Phishing Detection Cheat Sheet
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="btn btn-small btn-secondary" onclick="exportQuizResults()">
+                            <a href="#" id="exportLessons" class="resource-link">
+                                <i class="fas fa-print" aria-hidden="true"></i>
+                                Export Lessons (PDF)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" id="exportAnalyzer" class="resource-link">
                                 <i class="fas fa-chart-bar" aria-hidden="true"></i>
-                                Export Quiz Results
+                                Export Analyzer Results
                             </a>
                         </li>
                     </ul>
                 </div>
                 
-                <div class="card fade-in">
-                    <h3><i class="fas fa-external-link-alt" style="color: var(--accent-blue);"></i> Further Reading</h3>
-                    <ul style="list-style: none; padding-left: 0;">
-                        <li><a href="https://www.cisa.gov/phishing" target="_blank" rel="noopener" style="color: var(--accent-teal);">CISA Phishing Guidance</a></li>
-                        <li><a href="https://www.fbi.gov/how-we-can-help-you/scams-and-safety/common-scams-and-crimes/internet-fraud" target="_blank" rel="noopener" style="color: var(--accent-teal);">FBI Internet Fraud Resources</a></li>
-                        <li><a href="https://www.sans.org/security-awareness-training/" target="_blank" rel="noopener" style="color: var(--accent-teal);">SANS Security Awareness</a></li>
-                        <li><a href="https://phishingquiz.withgoogle.com/" target="_blank" rel="noopener" style="color: var(--accent-teal);">Google Phishing Quiz</a></li>
+                <div class="resource-card">
+                    <div class="card-header">
+                        <i class="fas fa-link" aria-hidden="true"></i>
+                        <h3>Trusted Security Resources</h3>
+                    </div>
+                    <ul class="resource-list">
+                        <li>
+                            <a href="https://www.cert-in.org.in" target="_blank" rel="noopener noreferrer" class="resource-link">
+                                <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                                CERT-In (Indian Computer Emergency Response Team)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.ncsc.gov.uk" target="_blank" rel="noopener noreferrer" class="resource-link">
+                                <i class="fas fa-flag" aria-hidden="true"></i>
+                                NCSC (UK National Cyber Security Centre)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://safebrowsing.google.com" target="_blank" rel="noopener noreferrer" class="resource-link">
+                                <i class="fas fa-search" aria-hidden="true"></i>
+                                Google Safe Browsing
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.phishtank.com" target="_blank" rel="noopener noreferrer" class="resource-link">
+                                <i class="fas fa-database" aria-hidden="true"></i>
+                                PhishTank Database
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
-            
         </div>
     </section>
 
+    <!-- About/Contact Section -->
+    <section class="section" id="about">
+        <div class="container">
+            <h2 class="section-title">About This Project</h2>
+            
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="card-header">
+                        <i class="fas fa-users" aria-hidden="true"></i>
+                        <h3>Development Team</h3>
+                    </div>
+                    <div class="team-info">
+                        <p><strong>Group 3 - BScIT Students</strong></p>
+                        <p><strong>Intern ID:</strong>129 226 227</p>
+                        <div class="team-members">
+                            <div class="member">
+                                <i class="fas fa-user" aria-hidden="true"></i>
+                                <span>Student Name 1: Anoop Shivadas</span>
+                            </div>
+                            <div class="member">
+                                <i class="fas fa-user" aria-hidden="true"></i>
+                                <span>Student Name 2: Shubham Bhagat</span>
+                            </div>
+                            <div class="member">
+                                <i class="fas fa-user" aria-hidden="true"></i>
+                                <span>Student Name 3: Ankit Gupta</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-card">
+                    <div class="card-header">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                        <h3>Contact Us</h3>
+                    </div>
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-group">
+                            <label for="contactName">Name:</label>
+                            <input type="text" id="contactName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactEmail">Email:</label>
+                            <input type="email" id="contactEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactMessage">Message:</label>
+                            <textarea id="contactMessage" name="message" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-button">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer style="background: var(--secondary-bg); padding: var(--space-lg) 0; margin-top: var(--space-xl); border-top: 1px solid var(--border);">
-        <div class="container" style="text-align: center;">
-            <p style="margin-bottom: var(--space-sm);">
-                &copy; Cybersecurity Education Platform. Educational use only.<br> Anoop Shubham Ankit
-            </p>
-            <p style="font-size: 0.9rem;">
-                <a href="https://www.cisa.gov/report-phishing" target="_blank" rel="noopener" style="color: var(--accent-teal); margin: 0 var(--space-sm);">Report Phishing to CISA</a>
-                <a href="https://www.fbi.gov/contact-us" target="_blank" rel="noopener" style="color: var(--accent-teal); margin: 0 var(--space-sm);">Contact FBI Cyber Division</a>
-                <a href="https://www.sans.org/resources/" target="_blank" rel="noopener" style="color: var(--accent-teal); margin: 0 var(--space-sm);">SANS Resources</a>
-            </p>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                    <span>CyberSecure Learning Platform</span>
+                </div>
+                <p class="footer-text">
+                    Empowering individuals and organizations with cybersecurity knowledge
+                </p>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#learn">Learn</a>
+                    <a href="#resources">Resources</a>
+                    <a href="#about">About</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; CyberSecure Learning Platform. Educational project by Group of 3 BScIT Students.</p>
+            </div>
         </div>
     </footer>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Certificate Canvas (Hidden) -->
+    <canvas id="certificateCanvas" width="800" height="600" style="display: none;"></canvas>
 
     <script src="script.js"></script>
 </body>
