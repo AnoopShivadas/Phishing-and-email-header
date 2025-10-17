@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://anoopshivadas.github.io/Phishing-and-email-header/sitemap.xml
