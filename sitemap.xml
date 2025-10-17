@@ -1,1 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://anoopshivadas.github.io/Phishing-and-email-header/</loc>
+    <priority>1.0</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <!-- If you have other pages, add more <url> blocks like below:
+  <url>
+    <loc>https://anoopshivadas.github.io/Phishing-and-email-header/anotherpage.html</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  -->
+</urlset>
 
