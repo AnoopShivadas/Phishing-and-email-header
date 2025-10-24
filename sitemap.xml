@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://anoopshivadas.github.io/Phishing-and-email-header/</loc>
-    <priority>1.0</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <!-- If you have other pages, add more <url> blocks like below:
-  <url>
-    <loc>https://anoopshivadas.github.io/Phishing-and-email-header/anotherpage.html</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  -->
-</urlset>
+<urlset 
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                      http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
+  <!-- Home Page -->
+  <url>
+    <loc>https://emailshield.netlify.app/</loc>
+    <lastmod>2025-10-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  </urlset>
